@@ -1,0 +1,143 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f4f6fb;
+  color: #1a1a2e;
+  font-size: 15px;
+}
+
+.main-content {
+  min-height: calc(100vh - 60px);
+}
+
+/* Buttons */
+.btn-primary {
+  background: #4f46e5;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: #4338ca; }
+.btn-primary:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.btn-secondary:hover { background: #d1d5db; }
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.btn-icon.danger:hover { background: #fee2e2; }
+.btn-icon:hover { background: #f3f4f6; }
+
+/* Forms */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; color: #374151; }
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.2s;
+  background: #fff;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus { border-color: #4f46e5; box-shadow: 0 0 0 2px #eef2ff; }
+.form-group small { color: #9ca3af; font-size: 11px; margin-top: 4px; display: block; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.data-table th {
+  background: #f9fafb;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #6b7280;
+  letter-spacing: .5px;
+}
+.data-table td { padding: 12px 16px; border-top: 1px solid #f3f4f6; font-size: 14px; }
+.data-table tr:hover td { background: #f9fafb; }
+
+/* Badge */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Loading / empty */
+.loading { padding: 40px; text-align: center; color: #9ca3af; }
+.loading-screen { display: flex; align-items: center; justify-content: center; height: 100vh; color: #9ca3af; }
+.empty { color: #9ca3af; padding: 24px 0; text-align: center; }
+.error-msg { background: #fee2e2; color: #b91c1c; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+
+/* Pages */
+.page { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.page-header h1 { font-size: 22px; font-weight: 700; }
+.page-header .btn-primary { width: auto; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.15);
+}
+.modal h2 { margin-bottom: 20px; font-size: 18px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+.modal-actions .btn-primary { flex: 1; }
+.modal-actions .btn-secondary { flex: 1; }
+
+/* Budget bars */
+.budget-bar-track { height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+.budget-bar-fill { height: 100%; background: #4f46e5; border-radius: 999px; transition: width 0.4s; }
+.budget-bar-fill.warning { background: #f59e0b; }
+.budget-bar-fill.danger { background: #ef4444; }
