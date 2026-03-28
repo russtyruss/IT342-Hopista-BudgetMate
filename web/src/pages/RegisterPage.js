@@ -7,6 +7,7 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -17,7 +18,8 @@ const RegisterPage = () => {
     setLoading(true);
     try {
       await register(form);
-      navigate('/login', { state: { message: 'Account created! Please sign in.' } });
+      setSuccess('Account created successfully! Redirecting to login...');
+      setTimeout(() => navigate('/login', { state: { message: 'Account created! Please sign in.' } }), 1500);
     } catch (err) {
       const data = err.response?.data;
       if (data?.errors) {
@@ -35,6 +37,7 @@ const RegisterPage = () => {
       <div className="auth-card">
         <h2>💰 BudgetMate</h2>
         <h3>Create your account</h3>
+        {success && <div className="auth-success">{success}</div>}
         {error && <div className="auth-error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
