@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
 const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(location.state?.message || '');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,7 +20,8 @@ const LoginPage = () => {
     setLoading(true);
     try {
       await login(form.email, form.password);
-      navigate('/dashboard');
+      setSuccess('Login successful! Redirecting...');
+      setTimeout(() => navigate('/dashboard'), 1000);
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
@@ -31,6 +34,7 @@ const LoginPage = () => {
       <div className="auth-card">
         <h2>💰 BudgetMate</h2>
         <h3>Welcome back</h3>
+        {success && <div className="auth-success">{success}</div>}
         {error && <div className="auth-error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">

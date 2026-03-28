@@ -42,10 +42,11 @@
 .auth-success {
   background: #d1fae5;
   color: #065f46;
-  padding: 14px;
+  padding: 10px 14px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
+  margin-bottom: 16px;
 }
 .auth-success a { color: #065f46; font-weight: 600; }
 

@@ -25,6 +25,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     @Value("${app.oauth2.authorized-redirect-uri}")
     private String redirectUri;
 
+    @Value("${app.oauth2.mobile-authorized-redirect-uri:}")
+    private String mobileRedirectUri;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
@@ -47,8 +50,21 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         String token = tokenProvider.generateTokenFromUserId(userPrincipal.getId(), userPrincipal.getEmail());
 
-        return UriComponentsBuilder.fromUriString(redirectUri)
+        String finalRedirectUri = resolveRedirectUri(request);
+
+        return UriComponentsBuilder.fromUriString(finalRedirectUri)
                 .queryParam("token", token)
                 .build().toUriString();
+    }
+
+    private String resolveRedirectUri(HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        boolean isMobileBrowser = userAgent != null && userAgent.matches(".*(Android|iPhone|iPad|Mobile).*");
+
+        if (isMobileBrowser && mobileRedirectUri != null && !mobileRedirectUri.isBlank()) {
+            return mobileRedirectUri;
+        }
+
+        return redirectUri;
     }
 }

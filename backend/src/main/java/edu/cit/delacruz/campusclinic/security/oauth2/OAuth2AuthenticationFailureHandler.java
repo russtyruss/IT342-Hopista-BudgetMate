@@ -21,15 +21,29 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
     @Value("${app.oauth2.authorized-redirect-uri}")
     private String redirectUri;
 
+    @Value("${app.oauth2.mobile-authorized-redirect-uri:}")
+    private String mobileRedirectUri;
+
     @Override
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response,
                                         AuthenticationException exception) throws IOException {
-        String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
+        String targetUrl = UriComponentsBuilder.fromUriString(resolveRedirectUri(request))
                 .queryParam("error", URLEncoder.encode(exception.getLocalizedMessage(), StandardCharsets.UTF_8))
                 .build().toUriString();
 
         log.error("OAuth2 authentication failed: {}", exception.getMessage());
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
+    }
+
+    private String resolveRedirectUri(HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        boolean isMobileBrowser = userAgent != null && userAgent.matches(".*(Android|iPhone|iPad|Mobile).*");
+
+        if (isMobileBrowser && mobileRedirectUri != null && !mobileRedirectUri.isBlank()) {
+            return mobileRedirectUri;
+        }
+
+        return redirectUri;
     }
 }
