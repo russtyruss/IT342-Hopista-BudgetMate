@@ -86,6 +86,9 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
     public enum AuthProvider {
         LOCAL, GOOGLE
     }

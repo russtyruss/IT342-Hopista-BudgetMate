@@ -9,6 +9,12 @@ const axiosInstance = axios.create({
   },
 });
 
+const isAuthEndpoint = (url = '') =>
+  url.includes('/auth/login')
+  || url.includes('/auth/register')
+  || url.includes('/auth/forgot-password')
+  || url.includes('/auth/reset-password');
+
 // Attach JWT token to every request
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -25,10 +31,17 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const requestUrl = error.config?.url || '';
+    const hasToken = Boolean(localStorage.getItem('token'));
+    const isLoginPage = window.location.pathname === '/login';
+
+    if ((status === 401 || status === 403) && !isAuthEndpoint(requestUrl) && hasToken) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      if (!isLoginPage) {
+        window.location.replace('/login');
+      }
     }
     return Promise.reject(error);
   }

@@ -91,6 +91,15 @@ public class JwtTokenProvider {
         return Long.parseLong(claims.getSubject());
     }
 
+    public Date getExpirationDateFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return claims.getExpiration();
+    }
+
     public boolean validateToken(String authToken) {
         try {
             Jwts.parser()

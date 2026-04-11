@@ -25,6 +25,34 @@
   gap: 20px;
 }
 
+.currency-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.currency-switcher label {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.currency-switcher select {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 8px;
+  outline: none;
+}
+
+.currency-switcher select:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px #eef2ff;
+}
+
 .navbar-links a {
   text-decoration: none;
   color: #6b7280;

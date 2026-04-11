@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import edu.cit.delacruz.campusclinic.dto.request.ForgotPasswordRequest;
 import edu.cit.delacruz.campusclinic.dto.request.LoginRequest;
@@ -51,7 +52,9 @@ public class AuthController {
      */
     @PostMapping("/logout")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public ResponseEntity<Map<String, String>> logout() {
+    public ResponseEntity<Map<String, String>> logout(
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        authService.logout(authorization);
         return ResponseEntity.ok(Map.of("message", "Logged out successfully. Please discard your token."));
     }
 

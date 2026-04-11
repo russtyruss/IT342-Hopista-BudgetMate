@@ -1,7 +1,7 @@
 import axiosInstance from './axiosInstance';
 
-export const getBudgets = () =>
-  axiosInstance.get('/budgets');
+export const getBudgets = (params) =>
+  axiosInstance.get('/budgets', { params });
 
 export const getBudget = (id) =>
   axiosInstance.get(`/budgets/${id}`);

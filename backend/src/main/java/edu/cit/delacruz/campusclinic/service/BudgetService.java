@@ -16,6 +16,7 @@ import edu.cit.delacruz.campusclinic.exception.ResourceNotFoundException;
 import edu.cit.delacruz.campusclinic.repository.BudgetRepository;
 import edu.cit.delacruz.campusclinic.repository.ExpenseRepository;
 import edu.cit.delacruz.campusclinic.repository.UserRepository;
+import edu.cit.delacruz.campusclinic.websocket.DashboardNotificationService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -25,6 +26,7 @@ public class BudgetService {
     private final BudgetRepository budgetRepository;
     private final UserRepository userRepository;
     private final ExpenseRepository expenseRepository;
+    private final DashboardNotificationService dashboardNotificationService;
 
     @Transactional
     public BudgetResponse create(Long userId, BudgetRequest request) {
@@ -50,7 +52,9 @@ public class BudgetService {
                 userId, request.getCategory(), request.getStartDate(), request.getEndDate());
         budget.setSpentAmount(spent != null ? spent : BigDecimal.ZERO);
 
-        return mapToResponse(budgetRepository.save(budget));
+        BudgetResponse response = mapToResponse(budgetRepository.save(budget));
+        dashboardNotificationService.notifyBudgetUpdate(userId);
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -83,7 +87,9 @@ public class BudgetService {
         budget.setEndDate(request.getEndDate());
         budget.setNotes(request.getNotes());
 
-        return mapToResponse(budgetRepository.save(budget));
+        BudgetResponse response = mapToResponse(budgetRepository.save(budget));
+        dashboardNotificationService.notifyBudgetUpdate(userId);
+        return response;
     }
 
     @Transactional
@@ -92,6 +98,7 @@ public class BudgetService {
                 .orElseThrow(() -> new ResourceNotFoundException("Budget", "id", budgetId));
         validateOwnership(budget, userId);
         budgetRepository.delete(budget);
+        dashboardNotificationService.notifyBudgetUpdate(userId);
     }
 
     private void validateOwnership(Budget budget, Long userId) {

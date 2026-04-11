@@ -16,6 +16,8 @@ import edu.cit.delacruz.campusclinic.entity.Expense;
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
+       void deleteAllByUserId(Long userId);
+
     Page<Expense> findAllByUserId(Long userId, Pageable pageable);
 
     List<Expense> findAllByUserIdAndCategory(Long userId, String category);

@@ -14,6 +14,7 @@ edu/cit/delacruz/campusclinic/BudgetMateApplication.class
 edu/cit/delacruz/campusclinic/controller/UserController.class
 edu/cit/delacruz/campusclinic/entity/Budget$BudgetBuilder.class
 edu/cit/delacruz/campusclinic/exception/GlobalExceptionHandler$ErrorResponse.class
+edu/cit/delacruz/campusclinic/repository/RevokedTokenRepository.class
 edu/cit/delacruz/campusclinic/websocket/DashboardNotificationService.class
 edu/cit/delacruz/campusclinic/dto/request/BudgetRequest.class
 edu/cit/delacruz/campusclinic/dto/response/AuthResponse.class
@@ -25,6 +26,7 @@ edu/cit/delacruz/campusclinic/entity/Role.class
 edu/cit/delacruz/campusclinic/service/ExpenseService.class
 edu/cit/delacruz/campusclinic/dto/response/BudgetResponse$BudgetResponseBuilder.class
 edu/cit/delacruz/campusclinic/exception/BadRequestException.class
+edu/cit/delacruz/campusclinic/config/AdminAccountSeeder.class
 edu/cit/delacruz/campusclinic/exception/GlobalExceptionHandler.class
 edu/cit/delacruz/campusclinic/dto/response/UserResponse.class
 edu/cit/delacruz/campusclinic/security/oauth2/CustomOAuth2UserService.class
@@ -40,7 +42,9 @@ edu/cit/delacruz/campusclinic/service/AuthService.class
 edu/cit/delacruz/campusclinic/dto/response/AuthResponse$AuthResponseBuilder.class
 edu/cit/delacruz/campusclinic/dto/request/ExpenseRequest.class
 edu/cit/delacruz/campusclinic/entity/User$AuthProvider.class
+edu/cit/delacruz/campusclinic/entity/RevokedToken.class
 edu/cit/delacruz/campusclinic/security/CustomUserDetailsService.class
+edu/cit/delacruz/campusclinic/entity/RevokedToken$RevokedTokenBuilder.class
 edu/cit/delacruz/campusclinic/config/WebSocketConfig.class
 edu/cit/delacruz/campusclinic/service/UserService.class
 edu/cit/delacruz/campusclinic/security/JwtTokenProvider.class
