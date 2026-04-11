@@ -18,7 +18,10 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <Link to="/dashboard">💰 BudgetMate</Link>
+        <Link to="/dashboard" className="brand-link">
+          <img src="/budgetmate-logo.png" alt="BudgetMate" className="brand-logo" />
+          <span>BudgetMate</span>
+        </Link>
       </div>
       {user && (
         <div className="navbar-links">

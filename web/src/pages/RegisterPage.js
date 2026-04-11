@@ -35,7 +35,10 @@ const RegisterPage = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2>💰 BudgetMate</h2>
+        <h2 className="auth-brand">
+          <img src="/budgetmate-logo.png" alt="BudgetMate" className="auth-brand-logo" />
+          <span>BudgetMate</span>
+        </h2>
         <h3>Create your account</h3>
         {success && <div className="auth-success">{success}</div>}
         {error && <div className="auth-error">{error}</div>}
