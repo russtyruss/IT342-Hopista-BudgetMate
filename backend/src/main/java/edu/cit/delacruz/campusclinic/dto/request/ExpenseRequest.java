@@ -37,4 +37,6 @@ public class ExpenseRequest {
     private LocalDate expenseDate;
 
     private Boolean isRecurring = false;
+
+    private Long budgetId;
 }

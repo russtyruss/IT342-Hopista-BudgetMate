@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { getBudgets, createBudget, updateBudget, deleteBudget } from '../api/budgetApi';
+import { useCurrency } from '../context/CurrencyContext';
 import './Expenses.css';
 
-const EMPTY_FORM = { category: '', amount: '', startDate: '', endDate: '' };
+const EMPTY_FORM = { category: '', amount: '', startDate: '', endDate: '', notes: '' };
 
 const BudgetsPage = () => {
+  const { formatCurrency } = useCurrency();
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -31,7 +34,14 @@ const BudgetsPage = () => {
     e.preventDefault();
     setError('');
     try {
-      const payload = { ...form, amount: parseFloat(form.amount) };
+      const payload = {
+        category: form.category,
+        limitAmount: parseFloat(form.amount),
+        currency: 'PHP',
+        startDate: form.startDate,
+        endDate: form.endDate,
+        notes: form.notes || '',
+      };
       if (editId) {
         await updateBudget(editId, payload);
       } else {
@@ -47,7 +57,13 @@ const BudgetsPage = () => {
   };
 
   const handleEdit = (b) => {
-    setForm({ category: b.category, amount: b.amount, startDate: b.startDate, endDate: b.endDate });
+    setForm({
+      category: b.category,
+      amount: b.limitAmount,
+      startDate: b.startDate,
+      endDate: b.endDate,
+      notes: b.notes || '',
+    });
     setEditId(b.id);
     setShowForm(true);
   };
@@ -100,6 +116,10 @@ const BudgetsPage = () => {
                   <input name="endDate" type="date" value={form.endDate} onChange={handleChange} required />
                 </div>
               </div>
+              <div className="form-group">
+                <label>Notes (optional)</label>
+                <textarea name="notes" value={form.notes} onChange={handleChange} rows={2} />
+              </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
                 <button type="submit" className="btn-primary">{editId ? 'Update' : 'Add'}</button>
@@ -114,19 +134,25 @@ const BudgetsPage = () => {
       ) : (
         <div className="budget-grid">
           {budgets.map((b) => {
-            const pct = b.amount ? Math.min((b.spentAmount / b.amount) * 100, 100) : 0;
+            const limit = Number(b.limitAmount || 0);
+            const spent = Number(b.spentAmount || 0);
+            const pct = limit ? Math.min((spent / limit) * 100, 100) : 0;
             return (
               <div key={b.id} className="budget-card">
                 <div className="budget-card-header">
                   <span className="badge">{b.category}</span>
                   <div>
-                    <button className="btn-icon" onClick={() => handleEdit(b)}>✏️</button>
-                    <button className="btn-icon danger" onClick={() => handleDelete(b.id)}>🗑️</button>
+                    <button className="btn-icon" onClick={() => handleEdit(b)} aria-label="Edit budget" title="Edit">
+                      <FiEdit2 />
+                    </button>
+                    <button className="btn-icon danger" onClick={() => handleDelete(b.id)} aria-label="Delete budget" title="Delete">
+                      <FiTrash2 />
+                    </button>
                   </div>
                 </div>
                 <div className="budget-amounts">
-                  <span>Spent: ₱{b.spentAmount?.toFixed(2) || '0.00'}</span>
-                  <span>Budget: ₱{b.amount?.toFixed(2)}</span>
+                  <span>Spent: {formatCurrency(spent, b.currency || 'PHP')}</span>
+                  <span>Budget: {formatCurrency(limit, b.currency || 'PHP')}</span>
                 </div>
                 <div className="budget-bar-track">
                   <div

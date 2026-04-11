@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -44,6 +45,7 @@ public class SecurityConfig {
             "/oauth2/**",
             "/login/**",
             "/ws/**",
+            "/ws-native/**",
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/actuator/health"
@@ -59,11 +61,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(PUBLIC_URLS).permitAll()
                     .anyRequest().authenticated())
-            .oauth2Login(oauth2 -> oauth2
+                .oauth2Login(oauth2 -> oauth2
                     .userInfoEndpoint(userInfo ->
-                            userInfo.userService(customOAuth2UserService))
+                        userInfo.userService(customOAuth2UserService))
                     .successHandler(oAuth2AuthenticationSuccessHandler)
                     .failureHandler(oAuth2AuthenticationFailureHandler))
+                .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint(authenticationEntryPoint()))
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -81,6 +85,11 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> response.sendError(401, "Unauthorized");
     }
 
     @Bean

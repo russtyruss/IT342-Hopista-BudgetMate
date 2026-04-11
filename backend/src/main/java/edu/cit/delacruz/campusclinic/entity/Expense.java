@@ -67,6 +67,12 @@ public class Expense {
     @EqualsAndHashCode.Exclude
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "budget_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Budget budget;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

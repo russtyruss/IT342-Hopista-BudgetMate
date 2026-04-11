@@ -19,7 +19,10 @@ public class UserResponse {
     private String email;
     private String imageUrl;
     private Boolean emailVerified;
+    private Boolean enabled;
+    private String status;
     private Set<String> roles;
     private String provider;
     private LocalDateTime createdAt;
+    private LocalDateTime lastLoginAt;
 }

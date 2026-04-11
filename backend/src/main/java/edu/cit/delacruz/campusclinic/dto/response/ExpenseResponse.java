@@ -23,6 +23,7 @@ public class ExpenseResponse {
     private String category;
     private LocalDate expenseDate;
     private Boolean isRecurring;
+    private Long budgetId;
     private Long userId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

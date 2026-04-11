@@ -3,13 +3,16 @@ package budgetmate.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import budgetmate.BuildConfig
 import budgetmate.data.model.BudgetRequest
 import budgetmate.data.model.BudgetResponse
 import budgetmate.data.model.ExpenseRequest
 import budgetmate.data.model.ExpenseResponse
 import budgetmate.data.model.UserResponse
+import budgetmate.data.network.DashboardRealtimeClient
 import budgetmate.data.repository.BudgetMateRepository
 import budgetmate.data.session.SessionManager
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +46,11 @@ class AppViewModel(
 
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
+
+    private var dashboardRealtimeClient: DashboardRealtimeClient? = null
+    private var reconnectJob: Job? = null
+    private var subscribedUserId: Long? = null
+    private var lastRealtimeRefreshAt: Long = 0L
 
     init {
         restoreSession()
@@ -160,6 +168,7 @@ class AppViewModel(
     fun logout() {
         viewModelScope.launch {
             repository.logout()
+            disconnectRealtimeDashboard()
             sessionManager.clearToken()
             _uiState.value = AppUiState(checkingSession = false)
         }
@@ -301,12 +310,64 @@ class AppViewModel(
                     user = user,
                     successMessage = onSuccessMessage
                 )
+                connectRealtimeDashboard(user.id)
                 refreshAll()
             }
             .onFailure { _ ->
+                disconnectRealtimeDashboard()
                 sessionManager.clearToken()
                 _uiState.value = AppUiState(checkingSession = false)
             }
+    }
+
+    private fun connectRealtimeDashboard(userId: Long) {
+        if (subscribedUserId == userId && dashboardRealtimeClient != null) {
+            return
+        }
+
+        disconnectRealtimeDashboard()
+        subscribedUserId = userId
+        dashboardRealtimeClient = DashboardRealtimeClient(
+            websocketUrl = BuildConfig.WS_BASE_URL,
+            onDashboardChanged = { triggerRealtimeRefresh() },
+            onConnectionLost = { scheduleReconnect(userId) }
+        )
+        dashboardRealtimeClient?.connect(userId)
+    }
+
+    private fun triggerRealtimeRefresh() {
+        val now = System.currentTimeMillis()
+        if (now - lastRealtimeRefreshAt < 700) {
+            return
+        }
+        lastRealtimeRefreshAt = now
+        refreshAll()
+    }
+
+    private fun scheduleReconnect(userId: Long) {
+        if (reconnectJob?.isActive == true) {
+            return
+        }
+
+        reconnectJob = viewModelScope.launch {
+            delay(2_500)
+            if (_uiState.value.user?.id == userId) {
+                dashboardRealtimeClient?.connect(userId)
+            }
+        }
+    }
+
+    private fun disconnectRealtimeDashboard() {
+        reconnectJob?.cancel()
+        reconnectJob = null
+        subscribedUserId = null
+        dashboardRealtimeClient?.disconnect()
+        dashboardRealtimeClient = null
+    }
+
+    override fun onCleared() {
+        disconnectRealtimeDashboard()
+        super.onCleared()
     }
 
     private fun setLoading(isLoading: Boolean) {

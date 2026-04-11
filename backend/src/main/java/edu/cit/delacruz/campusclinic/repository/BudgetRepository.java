@@ -14,6 +14,10 @@ import edu.cit.delacruz.campusclinic.entity.Budget;
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
 
+        Optional<Budget> findByIdAndUserId(Long id, Long userId);
+
+        void deleteAllByUserId(Long userId);
+
     Page<Budget> findAllByUserId(Long userId, Pageable pageable);
 
     List<Budget> findAllByUserIdAndCategory(Long userId, String category);

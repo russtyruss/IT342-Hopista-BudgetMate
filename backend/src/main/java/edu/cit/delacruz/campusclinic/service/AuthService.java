@@ -1,5 +1,6 @@
 package edu.cit.delacruz.campusclinic.service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,9 +20,11 @@ import edu.cit.delacruz.campusclinic.dto.request.RegisterRequest;
 import edu.cit.delacruz.campusclinic.dto.request.ResetPasswordRequest;
 import edu.cit.delacruz.campusclinic.dto.response.AuthResponse;
 import edu.cit.delacruz.campusclinic.entity.Role;
+import edu.cit.delacruz.campusclinic.entity.RevokedToken;
 import edu.cit.delacruz.campusclinic.entity.User;
 import edu.cit.delacruz.campusclinic.exception.BadRequestException;
 import edu.cit.delacruz.campusclinic.exception.ResourceNotFoundException;
+import edu.cit.delacruz.campusclinic.repository.RevokedTokenRepository;
 import edu.cit.delacruz.campusclinic.repository.UserRepository;
 import edu.cit.delacruz.campusclinic.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +38,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final EmailService emailService;
+    private final RevokedTokenRepository revokedTokenRepository;
 
     @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
@@ -87,6 +91,8 @@ public class AuthService {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadRequestException("User not found"));
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
 
         return AuthResponse.builder()
                 .accessToken(token)
@@ -95,6 +101,35 @@ public class AuthService {
                 .email(user.getEmail())
                 .role(role)
                 .build();
+    }
+
+    @Transactional
+    public void logout(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return;
+        }
+
+        String token = authHeader.substring(7);
+        if (!tokenProvider.validateToken(token)) {
+            return;
+        }
+
+        if (revokedTokenRepository.existsByToken(token)) {
+            return;
+        }
+
+        revokedTokenRepository.deleteByExpiresAtBefore(LocalDateTime.now());
+
+        RevokedToken revokedToken = RevokedToken.builder()
+                .token(token)
+                .expiresAt(tokenProvider.getExpirationDateFromToken(token)
+                        .toInstant()
+                        .atZone(java.time.ZoneOffset.UTC)
+                        .toLocalDateTime())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        revokedTokenRepository.save(revokedToken);
     }
 
     /**
