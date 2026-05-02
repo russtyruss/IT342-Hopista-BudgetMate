@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
@@ -11,6 +11,21 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(location.state?.message || '');
   const [loading, setLoading] = useState(false);
+  const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:8080/api/v1';
+  const oauthLoginUrl = `${apiBase.replace(/\/api\/v1\/?$/, '')}/oauth2/authorization/google`;
+
+  useEffect(() => {
+    if (!success && !error) {
+      return;
+    }
+
+    const clearTimer = setTimeout(() => {
+      setSuccess('');
+      setError('');
+    }, 3000);
+
+    return () => clearTimeout(clearTimer);
+  }, [success, error]);
 
   if (!authLoading && user) {
     return <Navigate to="/dashboard" replace />;
@@ -77,7 +92,7 @@ const LoginPage = () => {
           </button>
         </form>
         <div className="auth-divider">or</div>
-        <a href="http://localhost:8080/oauth2/authorization/google" className="btn-google">
+        <a href={oauthLoginUrl} className="btn-google">
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
           Continue with Google
         </a>

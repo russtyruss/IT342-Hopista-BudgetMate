@@ -26,6 +26,15 @@ data class ResetPasswordRequest(
     val newPassword: String
 )
 
+data class UpdateProfileNameRequest(
+    val name: String
+)
+
+data class ChangePasswordRequest(
+    val currentPassword: String,
+    val newPassword: String
+)
+
 data class AuthResponse(
     @SerializedName("accessToken")
     val accessToken: String,
@@ -43,6 +52,8 @@ data class UserResponse(
     val imageUrl: String? = null,
     val emailVerified: Boolean = false,
     val roles: Set<String> = emptySet(),
+    val status: String? = null,
+    val lastLoginAt: String? = null,
     val provider: String? = null,
     val createdAt: String? = null
 )
@@ -51,8 +62,8 @@ data class BudgetRequest(
     val category: String,
     val limitAmount: Double,
     val currency: String,
-    val startDate: String,
-    val endDate: String,
+    val startDate: String? = null,
+    val endDate: String? = null,
     val notes: String? = null
 )
 
@@ -63,8 +74,8 @@ data class BudgetResponse(
     val spentAmount: Double = 0.0,
     val remainingAmount: Double = 0.0,
     val currency: String,
-    val startDate: String,
-    val endDate: String,
+    val startDate: String? = null,
+    val endDate: String? = null,
     val notes: String? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null
@@ -77,7 +88,8 @@ data class ExpenseRequest(
     val currency: String,
     val category: String,
     val expenseDate: String,
-    val isRecurring: Boolean = false
+    val isRecurring: Boolean = false,
+    val budgetId: Long? = null
 )
 
 data class ExpenseResponse(
@@ -90,12 +102,15 @@ data class ExpenseResponse(
     val category: String,
     val expenseDate: String,
     val isRecurring: Boolean = false,
+    val budgetId: Long? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null
 )
 
 data class ExchangeRatesResponse(
+    @SerializedName("base_code")
     val baseCode: String? = null,
+    @SerializedName("conversion_rates")
     val conversionRates: Map<String, Double> = emptyMap()
 )
 
@@ -111,4 +126,9 @@ data class DashboardNotification(
     val type: String,
     val userId: Long,
     val timestamp: String
+)
+
+data class ProfileImagePayload(
+    val bytes: ByteArray,
+    val contentType: String?
 )

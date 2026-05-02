@@ -1,0 +1,300 @@
+1. Introduction
+
+1.1. Purpose  
+BudgetMate is a personal finance management system designed to help users track expenses, manage budgets, and maintain account/profile settings across web and Android platforms.  
+This document provides a clear description of what the system does, how it is structured, and the constraints under which it operates.
+
+Intended audience:
+- Course evaluators/instructors reviewing requirement coverage and architecture
+- Developers maintaining backend, web, and mobile modules
+- Testers validating feature behavior and integrations
+- Team members using one reference for scope, interfaces, and environment assumptions
+
+1.2. Scope  
+The system supports:
+- User authentication (email/password, Google OAuth)
+- Authorization via roles (USER, ADMIN)
+- Expense CRUD operations
+- Budget CRUD operations
+- Dashboard summary period selectors (current month or current year) on web and Android, with independent controls for Total Budget and Total Spent
+- Cascading delete rule: deleting a budget also deletes linked expenses
+- Budget detail popup display that avoids internal numeric budget identifiers
+- Profile management (name, password, profile image)
+- Currency context display with exchange-rate retrieval support
+- SMTP email flows (welcome and password reset)
+- Realtime dashboard auto-updates (backend publish, web/mobile subscribe)
+- Layered backend architecture with Controller -> Service -> Repository separation
+- DTO-based API payload handling (no password exposure in responses)
+- Global exception handling for consistent API error behavior
+- RESTful API design across backend modules
+
+System boundaries:
+- Included: Spring Boot backend, React web app, Android app (Kotlin XML), PostgreSQL via Supabase
+- Excluded: iOS app, payment gateway, investment/portfolio features, AI forecasting, PDF export
+
+1.3. Definitions, Acronyms, and Abbreviations  
+- API: Application Programming Interface  
+- REST: Representational State Transfer (HTTP-based API style)  
+- JWT: JSON Web Token used for stateless authentication  
+- RBAC: Role-Based Access Control  
+- OAuth2: Authorization protocol used for Google sign-in  
+- SMTP: Simple Mail Transfer Protocol for sending emails  
+- CRUD: Create, Read, Update, Delete operations  
+- DTO: Data Transfer Object for request/response models  
+- STOMP: Simple Text Oriented Messaging Protocol used over WebSocket  
+- Supabase: Managed platform hosting the project’s PostgreSQL database  
+- USER: Regular authenticated account role  
+- ADMIN: Privileged role with admin-only user-management access  
+
+2. Overall Description
+
+2.1. System Perspective  
+BudgetMate is a multi-client client-server system in which:
+- Web and Android clients consume a shared Spring Boot backend API
+- Backend handles authentication, authorization, validation, and business rules
+- Data is persisted in PostgreSQL (Supabase-hosted)
+- External services are integrated for Google OAuth, exchange-rate data, and SMTP emails
+- WebSocket/STOMP is used for dashboard auto-update events
+
+Architecturally, the backend follows layered separation:
+Controller -> Service -> Repository -> Database.
+
+2.2. User Classes and Characteristics  
+- Regular User:
+  - Registers/logs in and manages own expenses, budgets, and profile
+  - Needs simple forms, clear validation messages, and dashboard visibility
+- Admin User:
+  - Has regular-user capabilities plus admin-only user list/view/delete operations
+  - Requires stricter access controls and admin dashboard visibility
+- Technical Evaluator/Reviewer (document consumer):
+  - Reviews feature completeness, architecture, and requirement alignment
+  - Needs clear mapping between documented behavior and implementation
+
+2.3. Operating Environment  
+Backend:
+- Java 17, Spring Boot, Spring Security, Spring Data JPA, WebSocket/STOMP
+- Maven build tool
+- Runs on local development machine or Java-capable hosting environment
+
+Web:
+- React application
+- Node.js and npm tooling
+- Modern browser (Chrome/Edge/Firefox/Safari)
+
+Mobile:
+- Android app in Kotlin using XML-based Activity/Fragment UI
+- Retrofit for API calls
+- Android API 24+ (target SDK 34)
+
+Data/External Services:
+- PostgreSQL via Supabase
+- Google OAuth2 provider
+- Exchange-rate API provider
+- SMTP provider for outbound emails
+
+2.4. Assumptions and Dependencies  
+Assumptions:
+- Internet connectivity is available for login, API access, and external integrations
+- Backend and client environment variables are configured correctly
+- Users authenticate before accessing protected modules
+- Admin-only operations are executed by authorized admin accounts
+
+Dependencies:
+- Supabase availability and PostgreSQL connectivity
+- Google OAuth credentials and redirect/deep-link configuration
+- Exchange-rate API availability (with fallback behavior when unavailable)
+- SMTP service availability for email delivery
+- Third-party libraries used in Spring Boot, React, and Android stacks
+
+3. System Features and Functional Requirements
+Describe each major feature of the system and its functional requirements.
+All non-functional requirements are consolidated in Section 4.
+
+3.1. Feature 1: Authentication and Security
+Description:
+This feature secures account access for web and Android users through local login and Google OAuth, token-based session management, and password recovery.
+
+Functional Requirements:
+- The system shall allow registration and login using email/password.
+- The system shall allow login using Google OAuth.
+- The system shall hash local-account passwords using BCrypt.
+- The system shall issue JWT after successful authentication.
+- The system shall provide forgot-password and reset-password workflows.
+- The system shall expose auth endpoints for register, login, logout, me, forgot-password, and reset-password.
+
+3.2. Feature 2: Role-Based Access Control (RBAC)
+Description:
+This feature controls access to protected resources by role and enforces admin-only management operations.
+
+Functional Requirements:
+- The system shall define USER and ADMIN roles.
+- The system shall enforce backend-level protection for role-restricted endpoints.
+- The system shall allow admins to access user listing and eligible user deletion endpoints.
+- The system shall block admin self-deletion.
+- The system shall deny unauthorized access to admin-only endpoints.
+
+3.3. Feature 3: Expense Management
+Description:
+This feature allows users to create, view, update, and delete personal expenses with validation and optional budget linkage.
+
+Functional Requirements:
+- The system shall support full CRUD operations for expenses.
+- The system shall validate required fields, positive amounts, and valid dates.
+- The system shall link each expense to the authenticated user.
+- The system shall support optional linkage of expenses to budgets.
+- The system shall expose expense endpoints for create/list/get/update/delete.
+
+3.4. Feature 4: Budget Management
+Description:
+This feature lets users manage budget limits and tracks spent/remaining values, including dependency rules with linked expenses.
+
+Functional Requirements:
+- The system shall support full CRUD operations for budgets.
+- The system shall compute and expose spent/remaining budget values.
+- The system shall validate scheduled budget date ranges when provided.
+- The system shall recalculate budget totals when linked expenses are created, updated, or deleted.
+- The system shall delete linked expenses when a budget is deleted.
+- The system shall display budget detail popups without exposing internal numeric budget IDs.
+- The system shall present linked expenses in budget details as list items for improved mobile readability.
+- The system shall append recency-based sequence indicators (1, 2, 3, ...) to duplicate budget categories, where 1 is the most recent active budget in that category.
+- The system shall expose budget endpoints for create/list/get/update/delete.
+
+3.5. Feature 5: External API Integration (Exchange Rates)
+Description:
+This feature retrieves exchange-rate data to support currency display context in dashboards and related views.
+
+Functional Requirements:
+- The system shall retrieve exchange-rate data through the exchange-rate integration endpoint.
+- The system shall provide selected currency display context to clients.
+- The system shall return fallback behavior when the external exchange provider is unavailable.
+
+3.6. Feature 6: Email Sending (SMTP Notifications)
+Description:
+This feature sends operational emails for onboarding and account recovery flows.
+
+Functional Requirements:
+- The system shall send a welcome email after successful registration.
+- The system shall send password-reset related emails for forgot-password flow.
+- Email dispatch shall be triggered by authentication workflows.
+
+3.7. Feature 7: Profile Management and File Upload
+Description:
+This feature allows authenticated users to manage account profile details and profile images.
+
+Functional Requirements:
+- The system shall allow users to fetch their profile data.
+- The system shall allow users to update profile name and password.
+- The system shall allow users to upload and download profile images.
+- The system shall enforce image validation constraints (type/size).
+
+3.8. Feature 8: Realtime Dashboard Auto-Updates
+Description:
+This feature keeps dashboard summaries current by publishing backend update events and consuming them in web and Android clients.
+
+Functional Requirements:
+- The backend shall publish dashboard update events when finance data changes.
+- Web and Android clients shall subscribe to dashboard update topics.
+- Clients shall refresh dashboard summaries automatically after receiving update events.
+- Web and Android dashboards shall allow users to toggle Total Budget and Total Spent summary cards independently between Month and Year periods.
+- Dashboard total card labels shall indicate the active period (Month or Year).
+
+4. Non-Functional Requirements
+Specify system quality attributes such as performance, security, usability, reliability, etc.
+
+4.1. Performance Requirements
+- API response time target: <= 2 seconds for common operations under normal load.
+- Authentication flow should remain responsive for login/register.
+- Exchange-rate retrieval should fail fast and return fallback when external service is unavailable.
+- Dashboard refresh operations should complete promptly for user interaction.
+- Database queries should be optimized through repository paging and targeted filtering.
+
+4.2. Security Requirements
+- Passwords shall be hashed with BCrypt before persistence.
+- JWT shall be signed and validated for protected endpoints.
+- Revoked token tracking shall be enforced on logout.
+- Role-based endpoint protection shall be enforced at backend level.
+- Sensitive data (passwords/tokens) shall never be exposed in API responses.
+- Input validation shall be applied on request DTOs.
+- JWT shall be stored securely on Android (EncryptedSharedPreferences).
+- JWT shall be stored with client-side encryption utility on web.
+
+4.3. Reliability and Availability Requirements
+- Global exception handling shall provide consistent error responses.
+- External exchange API failure shall not crash core app functionality.
+- WebSocket failures shall not block core expense/budget workflows.
+- Email sending failures shall not corrupt primary transaction data.
+
+4.4. Scalability Requirements
+- Backend architecture shall support modular service growth.
+- Database schema shall support increasing user and transaction data.
+- Pagination on list endpoints shall support larger datasets.
+
+4.5. Usability Requirements
+- Android and web flows should remain intuitive and task-focused.
+- Validation and error messages shall be clear to users.
+- Budget progress and spending values shall be readable and understandable.
+
+4.6. Maintainability Requirements
+- Backend shall follow layered architecture (Controller, Service, Repository).
+- DTO pattern shall separate entities from API responses.
+- Code shall follow organized module boundaries for auth, users, expenses, budgets, and integrations.
+- Logging shall be present for operational debugging.
+
+4.7. Compatibility Requirements
+- Mobile app shall support Android API 24 and above.
+- Backend shall interoperate with web app, Android app, and REST clients.
+- Local web client origin shall be configured for CORS.
+
+4.8. Data Integrity Requirements
+- Every expense and budget record shall be tied to an authenticated user.
+- Ownership checks shall prevent unauthorized resource access.
+- Budget and expense recalculation logic shall remain consistent after create/update/delete operations.
+- Deleting a budget shall also remove its linked expense records for the same user.
+- User emails shall be unique.
+
+5. External Interface and API Alignment
+This section summarizes interface-level alignment with the Software Design Document.
+
+5.1. API Communication Standards
+- Base path: /api/v1
+- Data format: JSON for standard requests and responses
+- Authentication header: Authorization: Bearer <JWT>
+- File upload endpoints use multipart/form-data
+- Pagination follows Spring Page structure for list endpoints
+
+5.2. Functional Endpoint Coverage
+- Authentication: register, login, logout, me, forgot-password, reset-password
+- OAuth: Google authorization and callback flow
+- Expenses: create, list, get by id, update, delete
+- Budgets: create, list, get by id, update, delete (including linked-expense cascade behavior)
+- Users/Profile: profile read/update, password change, profile image upload/download, admin user management
+- Exchange rates: retrieval endpoint for currency context support
+
+5.3. Error and Validation Behavior
+- Standard HTTP codes are used for success, client errors, auth errors, and server errors.
+- Validation and domain errors are handled by global exception handling.
+- Common domain error categories include authentication, validation, business rules, file validation, and system errors.
+- Detailed endpoint tables and common error codes are documented in SDD.
+
+6. Appendices
+Include any additional information, references, or support materials.
+
+6.1. API Reference Summary
+- Base path: /api/v1
+- Main modules: Auth, Users/Profile, Expenses, Budgets, Exchange Rates
+
+6.2. Data and Infrastructure
+- Database: PostgreSQL via Supabase
+- Backend framework: Spring Boot (Java 17)
+- Web client: React
+- Mobile client: Android Kotlin (XML UI)
+
+6.3. External Integrations
+- Google OAuth2 for social login
+- Exchange-rate provider for currency data
+- SMTP provider for welcome/reset email flows
+
+6.4. Supporting Artifacts
+- SDD document: docs/sdd.txt
+- Architecture and UML diagrams (component, class, sequence, activity)
+- Evidence pack and screenshots (to be finalized)

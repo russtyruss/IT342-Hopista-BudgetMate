@@ -3,21 +3,26 @@ package budgetmate.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import budgetmate.BuildConfig
 import budgetmate.data.model.BudgetRequest
 import budgetmate.data.model.BudgetResponse
 import budgetmate.data.model.ExpenseRequest
 import budgetmate.data.model.ExpenseResponse
+import budgetmate.data.model.ProfileImagePayload
 import budgetmate.data.model.UserResponse
+import budgetmate.data.network.AdminUsersRealtimeClient
 import budgetmate.data.network.DashboardRealtimeClient
+import budgetmate.data.network.NetworkEndpointResolver
 import budgetmate.data.repository.BudgetMateRepository
 import budgetmate.data.session.SessionManager
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.MultipartBody
 
 enum class AuthMode {
     LOGIN,
@@ -34,6 +39,10 @@ data class AppUiState(
     val budgets: List<BudgetResponse> = emptyList(),
     val expenses: List<ExpenseResponse> = emptyList(),
     val users: List<UserResponse> = emptyList(),
+    val profileImagePayload: ProfileImagePayload? = null,
+    val selectedCurrency: String = "PHP",
+    val supportedCurrencies: List<String> = listOf("PHP", "USD", "EUR", "JPY", "GBP", "AUD", "CAD", "SGD", "HKD"),
+    val exchangeRates: Map<String, Double> = mapOf("PHP" to 1.0),
     val exchangeResult: Double? = null,
     val errorMessage: String? = null,
     val successMessage: String? = null
@@ -44,6 +53,11 @@ class AppViewModel(
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
+    companion object {
+        private const val DATA_CACHE_WINDOW_MS = 6_000L
+        private const val PROFILE_IMAGE_CACHE_WINDOW_MS = 20_000L
+    }
+
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
 
@@ -51,6 +65,14 @@ class AppViewModel(
     private var reconnectJob: Job? = null
     private var subscribedUserId: Long? = null
     private var lastRealtimeRefreshAt: Long = 0L
+    private var adminUsersRealtimeClient: AdminUsersRealtimeClient? = null
+    private var adminUsersReconnectJob: Job? = null
+    private var adminUsersRealtimeConnected: Boolean = false
+    private val suppressDeletedUserIds = mutableSetOf<Long>()
+    private var lastBudgetsLoadedAt: Long = 0L
+    private var lastExpensesLoadedAt: Long = 0L
+    private var lastUsersLoadedAt: Long = 0L
+    private var lastProfileImageLoadedAt: Long = 0L
 
     init {
         restoreSession()
@@ -76,11 +98,13 @@ class AppViewModel(
         viewModelScope.launch {
             if (!error.isNullOrBlank()) {
                 switchAuthMode(AuthMode.LOGIN)
-                setError(error)
+                setError(parseOAuthError(error))
                 return@launch
             }
 
             if (token.isNullOrBlank()) {
+                switchAuthMode(AuthMode.LOGIN)
+                setError("Google login did not return a valid token. Please try again.")
                 return@launch
             }
 
@@ -89,7 +113,10 @@ class AppViewModel(
             clearMessages()
             clearAuthPrompt()
             sessionManager.saveToken(token)
-            fetchCurrentUser(onSuccessMessage = "Welcome back")
+            fetchCurrentUser(
+                onSuccessMessage = "Welcome back",
+                onFailureMessage = "Google login failed. Please try again."
+            )
             setLoading(false)
         }
     }
@@ -105,8 +132,6 @@ class AppViewModel(
             clearMessages()
             repository.login(email, password)
                 .onSuccess { auth ->
-                    setSuccess("Login successful! Redirecting...")
-                    delay(1_000)
                     sessionManager.saveToken(auth.accessToken)
                     fetchCurrentUser(onSuccessMessage = "Welcome back, ${auth.name}")
                 }
@@ -169,23 +194,127 @@ class AppViewModel(
         viewModelScope.launch {
             repository.logout()
             disconnectRealtimeDashboard()
+            disconnectAdminUsersRealtime()
             sessionManager.clearToken()
             _uiState.value = AppUiState(checkingSession = false)
         }
     }
 
-    fun refreshAll() {
-        loadBudgets()
-        loadExpenses()
+    fun refreshAll(force: Boolean = false) {
+        loadBudgets(force)
+        loadExpenses(force)
+        loadExchangeRates()
         if (isAdmin()) {
-            loadUsers()
+            loadUsers(force)
         }
     }
 
-    fun loadBudgets() {
+    fun refreshCurrentUser() {
+        viewModelScope.launch {
+            repository.me()
+                .onSuccess { user ->
+                    _uiState.value = _uiState.value.copy(user = user)
+                    if (isAdminUser(user)) {
+                        connectAdminUsersRealtime()
+                    } else {
+                        disconnectAdminUsersRealtime()
+                    }
+                }
+                .onFailure { error -> setError(error.message ?: "Unable to refresh user profile") }
+        }
+    }
+
+    fun updateMyName(name: String) {
+        viewModelScope.launch {
+            if (name.isBlank()) {
+                setError("Name is required")
+                return@launch
+            }
+
+            setLoading(true)
+            repository.updateMyName(name.trim())
+                .onSuccess { user ->
+                    _uiState.value = _uiState.value.copy(user = user)
+                    setSuccess("Display name updated")
+                }
+                .onFailure { error -> setError(error.message ?: "Unable to update display name") }
+            setLoading(false)
+        }
+    }
+
+    fun changeMyPassword(currentPassword: String, newPassword: String) {
+        viewModelScope.launch {
+            if (currentPassword.isBlank() || newPassword.isBlank()) {
+                setError("Current password and new password are required")
+                return@launch
+            }
+
+            setLoading(true)
+            repository.changeMyPassword(currentPassword, newPassword)
+                .onSuccess { setSuccess("Password updated") }
+                .onFailure { error -> setError(error.message ?: "Unable to update password") }
+            setLoading(false)
+        }
+    }
+
+    fun uploadMyProfileImage(filePart: MultipartBody.Part) {
+        viewModelScope.launch {
+            setLoading(true)
+            repository.uploadMyProfileImage(filePart)
+                .onSuccess { user ->
+                    _uiState.value = _uiState.value.copy(user = user)
+                    setSuccess("Profile picture uploaded")
+                    loadProfileImage(force = true)
+                }
+                .onFailure { error -> setError(error.message ?: "Unable to upload profile picture") }
+            setLoading(false)
+        }
+    }
+
+    fun loadProfileImage(force: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!force &&
+            _uiState.value.profileImagePayload != null &&
+            now - lastProfileImageLoadedAt < PROFILE_IMAGE_CACHE_WINDOW_MS
+        ) {
+            return
+        }
+
+        viewModelScope.launch {
+            repository.downloadMyProfileImage()
+                .onSuccess { payload ->
+                    lastProfileImageLoadedAt = System.currentTimeMillis()
+                    _uiState.value = _uiState.value.copy(profileImagePayload = payload)
+                }
+                .onFailure {
+                    // Keep the last image payload to avoid flicker/disappearing avatar on transient failures.
+                }
+        }
+    }
+
+    fun clearProfileImage() {
+        lastProfileImageLoadedAt = 0L
+        _uiState.value = _uiState.value.copy(profileImagePayload = null)
+    }
+
+    fun setDisplayCurrency(currency: String) {
+        val normalized = currency.uppercase()
+        if (!_uiState.value.supportedCurrencies.contains(normalized)) {
+            return
+        }
+        _uiState.value = _uiState.value.copy(selectedCurrency = normalized)
+    }
+
+    fun loadBudgets(force: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!force && now - lastBudgetsLoadedAt < DATA_CACHE_WINDOW_MS) {
+            return
+        }
+
         viewModelScope.launch {
             repository.getBudgets()
                 .onSuccess { budgets ->
+                    lastBudgetsLoadedAt = System.currentTimeMillis()
                     _uiState.value = _uiState.value.copy(budgets = budgets)
                 }
                 .onFailure { error -> setError(error.message ?: "Unable to load budgets") }
@@ -196,30 +325,57 @@ class AppViewModel(
         viewModelScope.launch {
             setLoading(true)
             repository.createBudget(request)
-                .onSuccess {
+                .onSuccess { createdBudget ->
+                    lastBudgetsLoadedAt = System.currentTimeMillis()
+                    val nextBudgets = listOf(createdBudget) + _uiState.value.budgets.filterNot { it.id == createdBudget.id }
+                    _uiState.value = _uiState.value.copy(budgets = nextBudgets)
                     setSuccess("Budget created")
-                    loadBudgets()
+                    loadBudgets(force = true)
                 }
                 .onFailure { error -> setError(error.message ?: "Unable to create budget") }
             setLoading(false)
         }
     }
 
-    fun deleteBudget(id: Long) {
+    fun updateBudget(id: Long, request: BudgetRequest) {
         viewModelScope.launch {
-            repository.deleteBudget(id)
+            setLoading(true)
+            repository.updateBudget(id, request)
                 .onSuccess {
-                    setSuccess("Budget deleted")
-                    loadBudgets()
+                    setSuccess("Budget updated")
+                    loadBudgets(force = true)
                 }
-                .onFailure { error -> setError(error.message ?: "Unable to delete budget") }
+                .onFailure { error -> setError(error.message ?: "Unable to update budget") }
+            setLoading(false)
         }
     }
 
-    fun loadExpenses() {
+    fun deleteBudget(id: Long, onComplete: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            repository.deleteBudget(id)
+                .onSuccess {
+                    setSuccess("Budget and linked expenses deleted")
+                    loadBudgets(force = true)
+                    loadExpenses(force = true)
+                    onComplete(true)
+                }
+                .onFailure { error ->
+                    setError(error.message ?: "Unable to delete budget")
+                    onComplete(false)
+                }
+        }
+    }
+
+    fun loadExpenses(force: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!force && now - lastExpensesLoadedAt < DATA_CACHE_WINDOW_MS) {
+            return
+        }
+
         viewModelScope.launch {
             repository.getExpenses()
                 .onSuccess { expenses ->
+                    lastExpensesLoadedAt = System.currentTimeMillis()
                     _uiState.value = _uiState.value.copy(expenses = expenses)
                 }
                 .onFailure { error -> setError(error.message ?: "Unable to load expenses") }
@@ -230,25 +386,46 @@ class AppViewModel(
         viewModelScope.launch {
             setLoading(true)
             repository.createExpense(request)
-                .onSuccess {
+                .onSuccess { createdExpense ->
+                    lastExpensesLoadedAt = System.currentTimeMillis()
+                    val nextExpenses = listOf(createdExpense) + _uiState.value.expenses.filterNot { it.id == createdExpense.id }
+                    _uiState.value = _uiState.value.copy(expenses = nextExpenses)
                     setSuccess("Expense created")
-                    loadExpenses()
-                    loadBudgets()
+                    loadExpenses(force = true)
+                    loadBudgets(force = true)
                 }
                 .onFailure { error -> setError(error.message ?: "Unable to create expense") }
             setLoading(false)
         }
     }
 
-    fun deleteExpense(id: Long) {
+    fun updateExpense(id: Long, request: ExpenseRequest) {
+        viewModelScope.launch {
+            setLoading(true)
+            repository.updateExpense(id, request)
+                .onSuccess {
+                    setSuccess("Expense updated")
+                    loadExpenses(force = true)
+                    loadBudgets(force = true)
+                }
+                .onFailure { error -> setError(error.message ?: "Unable to update expense") }
+            setLoading(false)
+        }
+    }
+
+    fun deleteExpense(id: Long, onComplete: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
             repository.deleteExpense(id)
                 .onSuccess {
                     setSuccess("Expense deleted")
-                    loadExpenses()
-                    loadBudgets()
+                    loadExpenses(force = true)
+                    loadBudgets(force = true)
+                    onComplete(true)
                 }
-                .onFailure { error -> setError(error.message ?: "Unable to delete expense") }
+                .onFailure { error ->
+                    setError(error.message ?: "Unable to delete expense")
+                    onComplete(false)
+                }
         }
     }
 
@@ -264,24 +441,80 @@ class AppViewModel(
         }
     }
 
-    fun loadUsers() {
+    fun loadExchangeRates(base: String = "PHP") {
+        viewModelScope.launch {
+            repository.getExchangeRates(base)
+                .onSuccess { response ->
+                    val fetched = response.conversionRates
+                    if (fetched.isNotEmpty()) {
+                        _uiState.value = _uiState.value.copy(
+                            exchangeRates = fetched + mapOf(base.uppercase() to 1.0)
+                        )
+                    }
+                }
+                .onFailure {
+                    _uiState.value = _uiState.value.copy(exchangeRates = mapOf(base.uppercase() to 1.0))
+                }
+        }
+    }
+
+    fun loadUsers(force: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!force && now - lastUsersLoadedAt < DATA_CACHE_WINDOW_MS) {
+            return
+        }
+
         viewModelScope.launch {
             repository.getUsers()
                 .onSuccess { users ->
-                    _uiState.value = _uiState.value.copy(users = users)
+                    lastUsersLoadedAt = System.currentTimeMillis()
+                    val filteredUsers = users.filterNot { suppressDeletedUserIds.contains(it.id) }
+                    _uiState.value = _uiState.value.copy(users = filteredUsers)
                 }
                 .onFailure { error -> setError(error.message ?: "Unable to load users") }
         }
     }
 
-    fun deleteUser(id: Long) {
+    fun deleteUser(id: Long, onComplete: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
+            val previousUsers = _uiState.value.users
+            suppressDeletedUserIds.add(id)
+            _uiState.value = _uiState.value.copy(
+                users = previousUsers.filterNot { it.id == id }
+            )
+
             repository.deleteUser(id)
                 .onSuccess {
                     setSuccess("User deleted")
-                    loadUsers()
+                    refreshUsersUntilDeleted(id)
+                    onComplete(true)
                 }
-                .onFailure { error -> setError(error.message ?: "Unable to delete user") }
+                .onFailure { error ->
+                    suppressDeletedUserIds.remove(id)
+                    _uiState.value = _uiState.value.copy(users = previousUsers)
+                    setError(error.message ?: "Unable to delete user")
+                    onComplete(false)
+                }
+        }
+    }
+
+    private suspend fun refreshUsersUntilDeleted(deletedUserId: Long) {
+        repeat(6) { attempt ->
+            repository.getUsers()
+                .onSuccess { users ->
+                        lastUsersLoadedAt = System.currentTimeMillis()
+                    val stillPresent = users.any { it.id == deletedUserId }
+                    val filteredUsers = users.filterNot { suppressDeletedUserIds.contains(it.id) }
+                    _uiState.value = _uiState.value.copy(users = filteredUsers)
+                    if (!stillPresent) {
+                        suppressDeletedUserIds.remove(deletedUserId)
+                        return
+                    }
+                }
+
+            if (attempt < 5) {
+                delay(400)
+            }
         }
     }
 
@@ -302,7 +535,10 @@ class AppViewModel(
         }
     }
 
-    private suspend fun fetchCurrentUser(onSuccessMessage: String? = null) {
+    private suspend fun fetchCurrentUser(
+        onSuccessMessage: String? = null,
+        onFailureMessage: String? = null
+    ) {
         repository.me()
             .onSuccess { user ->
                 _uiState.value = _uiState.value.copy(
@@ -311,13 +547,44 @@ class AppViewModel(
                     successMessage = onSuccessMessage
                 )
                 connectRealtimeDashboard(user.id)
+                if (isAdminUser(user)) {
+                    connectAdminUsersRealtime()
+                } else {
+                    disconnectAdminUsersRealtime()
+                }
+                loadProfileImage()
+                loadExchangeRates()
                 refreshAll()
             }
             .onFailure { _ ->
                 disconnectRealtimeDashboard()
+                disconnectAdminUsersRealtime()
                 sessionManager.clearToken()
                 _uiState.value = AppUiState(checkingSession = false)
+                if (!onFailureMessage.isNullOrBlank()) {
+                    switchAuthMode(AuthMode.LOGIN)
+                    setError(onFailureMessage)
+                }
             }
+    }
+
+    private fun parseOAuthError(rawError: String): String {
+        val decodedOnce = decodeSafe(rawError)
+        val decodedTwice = decodeSafe(decodedOnce)
+        val cleaned = decodedTwice.replace('+', ' ').trim()
+        return if (cleaned.isBlank()) {
+            "Google login failed. Please try again."
+        } else {
+            cleaned
+        }
+    }
+
+    private fun decodeSafe(value: String): String {
+        return try {
+            URLDecoder.decode(value, StandardCharsets.UTF_8)
+        } catch (_: Exception) {
+            value
+        }
     }
 
     private fun connectRealtimeDashboard(userId: Long) {
@@ -328,7 +595,7 @@ class AppViewModel(
         disconnectRealtimeDashboard()
         subscribedUserId = userId
         dashboardRealtimeClient = DashboardRealtimeClient(
-            websocketUrl = BuildConfig.WS_BASE_URL,
+            websocketUrl = NetworkEndpointResolver.wsBaseUrl,
             onDashboardChanged = { triggerRealtimeRefresh() },
             onConnectionLost = { scheduleReconnect(userId) }
         )
@@ -365,8 +632,49 @@ class AppViewModel(
         dashboardRealtimeClient = null
     }
 
+    private fun connectAdminUsersRealtime() {
+        if (adminUsersRealtimeConnected && adminUsersRealtimeClient != null) {
+            return
+        }
+
+        disconnectAdminUsersRealtime()
+        adminUsersRealtimeConnected = true
+        adminUsersRealtimeClient = AdminUsersRealtimeClient(
+            websocketUrl = NetworkEndpointResolver.wsBaseUrl,
+            onUsersChanged = { loadUsers() },
+            onConnectionLost = { scheduleAdminUsersReconnect() }
+        )
+        adminUsersRealtimeClient?.connect()
+    }
+
+    private fun scheduleAdminUsersReconnect() {
+        if (adminUsersReconnectJob?.isActive == true) {
+            return
+        }
+
+        adminUsersReconnectJob = viewModelScope.launch {
+            delay(2_500)
+            if (isAdmin()) {
+                adminUsersRealtimeClient?.connect()
+            }
+        }
+    }
+
+    private fun disconnectAdminUsersRealtime() {
+        adminUsersReconnectJob?.cancel()
+        adminUsersReconnectJob = null
+        adminUsersRealtimeConnected = false
+        adminUsersRealtimeClient?.disconnect()
+        adminUsersRealtimeClient = null
+    }
+
+    private fun isAdminUser(user: UserResponse): Boolean {
+        return user.roles.any { it == "ROLE_ADMIN" || it == "ADMIN" }
+    }
+
     override fun onCleared() {
         disconnectRealtimeDashboard()
+        disconnectAdminUsersRealtime()
         super.onCleared()
     }
 

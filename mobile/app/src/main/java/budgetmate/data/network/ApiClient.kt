@@ -1,6 +1,5 @@
 package budgetmate.data.network
 
-import budgetmate.BuildConfig
 import budgetmate.data.session.SessionManager
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
@@ -30,7 +29,7 @@ object ApiClient {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl(BuildConfig.API_BASE_URL)
+            .baseUrl(NetworkEndpointResolver.apiBaseUrl)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

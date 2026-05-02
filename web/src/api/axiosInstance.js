@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getSecureToken, hasSecureToken, removeSecureToken } from '../utils/secureTokenStorage';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api/v1';
 
@@ -18,7 +19,7 @@ const isAuthEndpoint = (url = '') =>
 // Attach JWT token to every request
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = getSecureToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -33,11 +34,11 @@ axiosInstance.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
     const requestUrl = error.config?.url || '';
-    const hasToken = Boolean(localStorage.getItem('token'));
+    const hasToken = hasSecureToken();
     const isLoginPage = window.location.pathname === '/login';
 
     if ((status === 401 || status === 403) && !isAuthEndpoint(requestUrl) && hasToken) {
-      localStorage.removeItem('token');
+      removeSecureToken();
       localStorage.removeItem('user');
       if (!isLoginPage) {
         window.location.replace('/login');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { forgotPassword } from '../api/authApi';
 import './Auth.css';
@@ -8,6 +8,15 @@ const ForgotPasswordPage = () => {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    const clearTimer = setTimeout(() => setError(''), 3000);
+    return () => clearTimeout(clearTimer);
+  }, [error]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

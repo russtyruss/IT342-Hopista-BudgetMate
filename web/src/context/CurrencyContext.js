@@ -1,8 +1,20 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { getExchangeRates } from '../api/exchangeRateApi';
+import { getSecureToken } from '../utils/secureTokenStorage';
 
 const DEFAULT_CURRENCY = 'PHP';
 const SUPPORTED_CURRENCIES = ['PHP', 'USD', 'EUR', 'JPY', 'GBP', 'AUD', 'CAD', 'SGD', 'HKD'];
+const CURRENCY_SYMBOLS = {
+  PHP: '₱',
+  USD: '$',
+  EUR: '€',
+  JPY: '¥',
+  GBP: '£',
+  AUD: '$',
+  CAD: '$',
+  SGD: '$',
+  HKD: '$',
+};
 
 const CurrencyContext = createContext(null);
 
@@ -15,7 +27,7 @@ export const CurrencyProvider = ({ children }) => {
   }, [selectedCurrency]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getSecureToken();
     if (!token) {
       setRates({ [DEFAULT_CURRENCY]: 1 });
       return;
@@ -61,12 +73,14 @@ export const CurrencyProvider = ({ children }) => {
   const formatCurrency = useCallback(
     (amount, fromCurrency = DEFAULT_CURRENCY) => {
       const converted = convertAmount(amount, fromCurrency);
-      return new Intl.NumberFormat('en-PH', {
-        style: 'currency',
-        currency: selectedCurrency,
+      const normalized = (selectedCurrency || DEFAULT_CURRENCY).toUpperCase();
+      const symbol = CURRENCY_SYMBOLS[normalized] || normalized;
+      const formattedNumber = new Intl.NumberFormat('en-PH', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(converted);
+
+      return `${symbol}${formattedNumber}`;
     },
     [convertAmount, selectedCurrency]
   );

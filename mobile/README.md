@@ -1,11 +1,11 @@
 # BudgetMate Mobile (Android)
 
-Native Android implementation of BudgetMate using Kotlin, Jetpack Compose, and Retrofit.
+Native Android implementation of BudgetMate using Kotlin, XML layouts/fragments, and Retrofit.
 
 ## Tech Stack
 
 - Kotlin
-- Jetpack Compose (Material 3)
+- Android XML layouts + Fragments (Material Components)
 - Retrofit + OkHttp
 - DataStore (JWT token persistence)
 - MVVM-style state via ViewModel
@@ -19,20 +19,27 @@ Native Android implementation of BudgetMate using Kotlin, Jetpack Compose, and R
   - Reset Password
   - Session restore using saved JWT
 - Dashboard:
-  - Budget, expense, and balance summaries
+  - Budget and spending summaries
+  - Active budget count
   - Recent expenses list
+  - Budget utilization status cards
 - Expenses:
   - Create expense
+  - Update expense
   - List expenses
   - Delete expense
 - Budgets:
   - Create budget
+  - Update budget
   - List budgets
   - Delete budget
-- Exchange:
-  - Currency conversion
+- Currency display:
+  - Backend-powered exchange rates
+  - Select display currency in app bar
 - Admin:
   - List users
+  - Active/inactive user metrics
+  - Admin/self delete protection in UI
   - Delete user
 
 ## Backend Alignment
@@ -45,11 +52,25 @@ The app calls the same backend route groups used by the web frontend:
 - /api/v1/exchange-rates/*
 - /api/v1/users/*
 
-Default API base URL (emulator-friendly):
+Default local development endpoints are selected automatically at runtime:
 
-- http://10.0.2.2:8080/api/v1/
+- Emulator: `http://10.0.2.2:8080/api/v1/` and `ws://10.0.2.2:8080/ws-native`
+- Physical phone: `http://127.0.0.1:8080/api/v1/` and `ws://127.0.0.1:8080/ws-native`
 
-Configured in app/build.gradle.kts via BuildConfig.API_BASE_URL.
+Configured in `app/build.gradle.kts` via:
+
+- `BuildConfig.API_BASE_URL_EMULATOR`
+- `BuildConfig.WS_BASE_URL_EMULATOR`
+- `BuildConfig.API_BASE_URL_DEVICE`
+- `BuildConfig.WS_BASE_URL_DEVICE`
+
+For physical devices, run ADB reverse before launching the app:
+
+- `adb reverse tcp:8080 tcp:8080`
+
+Optional: if you prefer Wi-Fi LAN routing instead of ADB reverse, set a custom host during build:
+
+- `./gradlew :app:assembleDebug -PDEVICE_HOST=<your-lan-ip>`
 
 ## Open in Android Studio
 
@@ -62,14 +83,13 @@ Configured in app/build.gradle.kts via BuildConfig.API_BASE_URL.
 ## Run Requirements
 
 1. Start backend server on your machine at port 8080.
-2. Use Android emulator (10.0.2.2 points to host localhost).
+2. Use Android emulator directly, or use `adb reverse tcp:8080 tcp:8080` for physical phones.
 3. Ensure internet permission is enabled in AndroidManifest.xml (already set).
 
 ## Notes
 
-- Realtime dashboard updates are currently implemented as periodic polling every 15 seconds.
-- Backend websocket is STOMP-based; a dedicated STOMP client integration can be added next for push updates.
-- Google OAuth mobile deep-link flow is not wired yet in this initial implementation.
+- Realtime dashboard updates are websocket/STOMP based (subscribed per user) and trigger dashboard refresh.
+- Google OAuth mobile deep-link callback is handled using `budgetmate://oauth2/redirect`.
 
 ## Project Structure
 
@@ -86,7 +106,7 @@ Configured in app/build.gradle.kts via BuildConfig.API_BASE_URL.
 
 ## Next Steps
 
-1. Add edit/update flows for budgets and expenses.
-2. Add websocket STOMP subscription for true realtime refresh.
-3. Add form validation and richer UI components.
-4. Add tests for repository and viewmodel logic.
+1. Add date pickers and category dropdown components for stronger input validation.
+2. Add pagination controls for large expenses/budgets/user lists.
+3. Add repository and ViewModel test coverage.
+4. Add UI test coverage for auth and CRUD flows.

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bm_primary">#4F46E5</color>
+    <color name="bm_primary_dark">#4338CA</color>
+    <color name="bm_secondary">#0E7C7B</color>
+    <color name="bm_accent">#E97A1F</color>
+    <color name="bm_bg">#EEF0F7</color>
+    <color name="bm_surface">#FFFFFF</color>
+    <color name="bm_text_primary">#1E2132</color>
+    <color name="bm_text_secondary">#6B7280</color>
+    <color name="bm_error">#B00020</color>
+    <color name="bm_warning">#F59E0B</color>
+    <color name="bm_progress_normal">#C7CBD6</color>
+    <color name="bm_input_stroke">#CDD4E3</color>
+    <color name="bm_input_stroke_focused">#4F46E5</color>
+    <color name="bm_chip_blue_text">#4D56D9</color>
+    <color name="bm_chip_green_text">#198754</color>
+    <color name="bm_chip_gray_text">#4B5563</color>
+    <color name="bm_chip_red_text">#C23030</color>
+</resources>

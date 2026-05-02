@@ -1,0 +1,548 @@
+EXECUTIVE SUMMARY
+1.1 Project Overview
+Budget Mate is a cross-platform personal finance tracking system that helps users manage expenses and budgets through a web app and Android app connected to one backend service.
+The system consists of:
+• A backend API built with Spring Boot
+• A web application built with React
+• A native mobile application for Android (Kotlin with XML-based UI)
+• A relational database using PostgreSQL via Supabase
+The clients communicate securely with the backend via REST APIs. The system implements JWT authentication, Google OAuth login, SMTP-based email flows, exchange-rate API integration, profile image upload, and realtime dashboard auto-updates (WebSocket/STOMP support on backend, web, and Android clients).
+
+1.2 Objectives
+1. Develop a secure expense and budget tracking platform for web and Android users.
+2. Implement JWT-based authentication and Google OAuth login.
+3. Apply Role-Based Access Control (Admin and User roles).
+4. Implement full CRUD operations for expense and budget management.
+5. Integrate a real external API for exchange-rate retrieval and currency display support.
+6. Send operational emails using SMTP (welcome + password reset).
+7. Follow a layered backend architecture with proper separation of concerns.
+
+1.3 Scope
+Included Features:
+• User registration and login
+• JWT authentication
+• Google OAuth login
+• Role-based access control
+• Expense management (CRUD)
+• Budget management (CRUD)
+• External API integration (exchange rates)
+• Email notifications (welcome + password reset)
+• Profile management (name/password/image)
+• Realtime dashboard updates (backend publish + web/mobile subscribe)
+• DTO usage (no password exposure)
+• Global exception handling
+• RESTful API design
+Excluded Features:
+• iOS version of the application
+• AI-based financial forecasting
+• Investment portfolio tracking
+• Payment gateway features
+• PDF export
+
+1.0 INTRODUCTION
+1.1 Purpose
+This document serves as the comprehensive design specification for the Budget Mate system.
+It defines:
+• Functional requirements
+• Web and mobile system behavior
+• Backend architecture
+• API contracts
+• Database structure
+• Integration requirements
+The goal is to ensure web, mobile, and backend components integrate correctly and reflect the implemented system behavior.
+
+2.0 FUNCTIONAL REQUIREMENTS SPECIFICATION
+2.1 Project Overview
+Project Name: BudgetMate
+Domain: Personal Finance / Expense Tracking
+Primary Users:
+1. Regular Users
+2. Administrators
+Problem Statement: Many users struggle to track expenses and budget usage in real time using manual or spreadsheet methods. A secure and practical system is needed to track financial activity across devices.
+
+Solution:
+Budget Mate provides a secure platform that allows users to:
+• Record expenses
+• Create and monitor category budgets
+• View spending summaries
+• Display the selected currency indicator for amounts
+• Manage profile and account security settings
+
+2.2 Core User Journeys
+Journey 1: User Registration and Setup
+1. User opens web or Android app
+2. Registers using email/password OR logs in with Google OAuth
+3. Password is hashed using BCrypt (for local accounts)
+4. JWT token is issued
+5. Welcome email is sent after registration
+6. User creates initial budget and starts tracking expenses
+
+Journey 2: Expense and Budget Tracking
+1. User logs in
+2. Creates a new expense entry
+3. Expense is saved in database and linked to user
+4. If linked to a budget, budget spent amount is recalculated
+5. Dashboard reflects updated financial data
+6. User can independently switch Total Budget and Total Spent cards between current month and current year views
+
+Journey 3: Admin Monitoring
+1. Admin logs into the system
+2. Opens admin dashboard
+3. Views user list and status info
+4. Performs allowed administrative actions (view users, delete eligible non-admin accounts)
+
+2.3 Feature List (MoSCoW)
+MUST HAVE
+1. User Registration and Login
+2. JWT Authentication
+3. Google OAuth login
+4. Role-Based Access Control
+5. Expense CRUD operations
+6. Budget CRUD operations
+7. External API integration (exchange rates)
+8. SMTP email sending
+9. Layered backend architecture
+
+SHOULD HAVE
+1. Realtime dashboard updates (WebSocket publish + web/mobile subscribe)
+2. Profile image upload/download
+3. Admin dashboard user management view
+
+COULD HAVE
+1. Additional analytics dashboards
+2. More budget insights per period
+3. Expanded notification channels
+
+WON'T HAVE
+1. iOS application
+2. Investment tracking
+3. Cryptocurrency module
+4. Payment integration module
+
+2.4 Detailed Feature Specifications
+Feature: Authentication and Security
+• Screens: Registration, Login, Forgot Password, Reset Password, Profile
+• Fields: Name, Email, Password, Current Password, New Password
+• Validation: email format, unique email, required fields, password constraints
+• API Endpoints: POST /api/v1/auth/register, POST /api/v1/auth/login, POST /api/v1/auth/logout, GET /api/v1/auth/me, POST /api/v1/auth/forgot-password, POST /api/v1/auth/reset-password
+• Security: JWT-based auth, BCrypt password hashing, protected routes, encrypted token storage in web and Android clients
+
+Feature: Role-Based Access Control
+• Roles: USER, ADMIN
+• Access Rules: secured endpoints enforced by Spring Security + method-level authorization
+• Admin Restrictions: admin-only user listing and user deletion endpoints; admin self-delete is blocked
+• Client Restriction: UI-level admin feature visibility based on role
+• API Endpoints: protected endpoints under /api/v1/users and other modules
+
+Feature: Expense Management
+• Screens: Add Expense, Edit Expense, Expense List, Expense Details
+• Fields: title, description, amount, currency, category, expenseDate, isRecurring, budgetId(optional)
+• Validation: amount > 0, required fields cannot be empty, valid date
+• Functions: create expense, list user expenses, update expense, delete expense
+• Persistence: stored in PostgreSQL (Supabase-hosted) expenses table linked to authenticated user
+• API Endpoints:
+  o POST /api/v1/expenses
+  o GET /api/v1/expenses
+  o GET /api/v1/expenses/{id}
+  o PUT /api/v1/expenses/{id}
+  o DELETE /api/v1/expenses/{id}
+
+Feature: Budget Management
+• Screens: Create Budget, Budget Overview Dashboard
+• Fields: category, limitAmount, currency, startDate(optional), endDate(optional), notes(optional)
+• Functions: create budget, compute spent/remaining amounts, update/delete budget, validate scheduled date ranges, show linked expenses in a structured list inside budget details, show recency-based category sequence indicators for duplicate categories (1 newest, 2 next, etc.), view linked-expense budget details without exposing numeric budget IDs in the popup, and delete linked expenses when a budget is deleted
+• Persistence: stored in PostgreSQL (Supabase-hosted) budgets table linked to authenticated user
+• API Endpoints:
+  o POST /api/v1/budgets
+  o GET /api/v1/budgets
+  o GET /api/v1/budgets/{id}
+  o PUT /api/v1/budgets/{id}
+  o DELETE /api/v1/budgets/{id}
+
+Feature: External API Integration (Currency Exchange)
+• Screens: Dashboard currency display
+• Data Displayed: selected currency indicator and exchange-rate data
+• Purpose: support currency indicator display using available exchange-rate data
+• Integration: ExchangeRate-API consumption with fallback behavior
+• API Endpoints:
+  o GET /api/v1/exchange-rates
+• Requirement: exchange-rate data retrieval must fail safely when external API is unavailable (fallback response)
+
+Feature: Email Sending (SMTP Notifications)
+• Trigger Events: user registration, forgot-password workflow
+• Email Types: Welcome Email, Password Reset Email
+• Configuration: SMTP server configuration required
+• Security: no sensitive credentials sent in email body
+• API Endpoints (triggered by auth flows):
+  o POST /api/v1/auth/register
+  o POST /api/v1/auth/forgot-password
+
+Feature: Profile Management and File Upload
+• Screens: Profile settings (web and Android)
+• Fields: display name, current/new password, profile image file
+• Validation: image type and max file size validation (5MB)
+• Functions: update name, change password, upload/download profile image
+• API Endpoints:
+  o GET /api/v1/users/me
+  o PUT /api/v1/users/me/name
+  o PUT /api/v1/users/me/password
+  o POST /api/v1/users/me/profile-image
+  o GET /api/v1/users/me/profile-image
+  o GET /api/v1/users/{id}/profile-image
+
+2.5 Acceptance Criteria
+AC-1: User Registration
+Given I am a new user
+When I register with valid credentials
+Then my password is hashed
+And I receive a welcome email
+And I receive a JWT token
+
+AC-2: User Login
+Given I am a registered user
+When I log in with valid credentials
+Then my credentials are validated
+And a JWT token is issued
+And I can access protected endpoints
+
+AC-3: Google OAuth Login
+Given I choose to log in using Google
+When authentication is successful
+Then my account is created or linked
+And I receive a JWT token
+And I can access the application
+
+AC-4: Role-Based Access Control
+Given I am logged in as a USER
+When I attempt to access an admin-only endpoint
+Then access is denied
+Given I am logged in as an ADMIN
+When I access admin endpoints
+Then access is granted
+
+AC-5: Expense Creation
+Given I am logged in
+When I create an expense with valid data
+Then the expense is stored in the database
+And it is linked to my user account
+And linked budget totals are updated when applicable
+
+AC-6: Expense Update
+Given I have an existing expense
+When I update the expense with valid data
+Then the changes are saved
+And related budget totals are recalculated when needed
+
+AC-7: Expense Deletion
+Given I have an existing expense
+When I delete the expense
+Then the expense is removed from the database
+And linked budget totals are recalculated when needed
+
+AC-8: Budget Creation
+Given I am logged in
+When I create a budget with valid data
+Then the budget is stored in the database
+And it is linked to my user account
+
+AC-9: Budget Monitoring
+Given I have a budget
+When expenses are recorded
+Then spent and remaining values are computed correctly
+And users can see budget progress in the dashboard/UI
+And users can switch dashboard total cards between Month and Year summaries
+And when a budget is deleted, all expenses linked to that budget are also deleted
+
+AC-10: Budget Deletion
+Given I have an existing budget
+When I delete that budget
+Then the budget is removed from the database
+And all expenses linked to that budget are also deleted
+And dashboard data is refreshed to reflect the deletion
+
+AC-11: External API Integration (Exchange Rates)
+Given I view currency data
+When the system fetches exchange rates
+Then exchange data is returned
+And selected currency display remains available for users
+
+AC-12: Email Notification
+Given I register or request password reset
+When the flow completes
+Then an email is sent through SMTP workflow
+
+3.0 NON-FUNCTIONAL REQUIREMENTS
+3.1 Performance Requirements
+• API response time target: <= 2 seconds for common operations under normal load
+• Authentication flow should remain responsive for login/register
+• Exchange rate retrieval should fail fast and return fallback when external service is unavailable
+• Dashboard refresh operations should complete promptly for user interaction
+• Database queries should be optimized through repository paging and targeted filtering
+
+3.2 Security Requirements
+• Passwords hashed with BCrypt before persistence
+• JWT signed and validated for protected endpoints
+• Revoked token tracking is enforced on logout
+• Role-based endpoint protection enforced at backend level
+• Sensitive data (passwords/tokens) never exposed in API responses
+• Input validation applied on request DTOs
+• JWT stored securely on Android (EncryptedSharedPreferences)
+• JWT stored with client-side encryption utility on web
+
+3.3 Reliability and Availability Requirements
+• Global exception handling provides consistent error responses
+• External exchange API failure does not crash core app functionality
+• WebSocket failures should not block core expense/budget workflows
+• Email sending failures should not corrupt primary transaction data
+
+3.4 Scalability Requirements
+• Backend architecture supports modular service growth
+• Database schema supports increasing user and transaction data
+• Pagination on list endpoints supports larger datasets
+
+3.5 Usability Requirements
+• Android and web flows should remain intuitive and task-focused
+• Validation and error messages must be clear to users
+• Budget progress and spending values should be readable and understandable
+
+3.6 Maintainability Requirements
+• Backend follows layered architecture (Controller, Service, Repository)
+• DTO pattern separates entities from API responses
+• Code follows organized module boundaries for auth, users, expenses, budgets, integrations
+• Logging is present for operational debugging
+
+3.7 Compatibility Requirements
+• Mobile app supports Android API 24 and above
+• Backend interoperates with web app, Android app, and REST clients
+• Local web client origin is configured for CORS
+
+3.8 Data Integrity Requirements
+• Every expense and budget record is tied to an authenticated user
+• Ownership checks prevent unauthorized resource access
+• Budget and expense recalculation logic remains consistent after create/update/delete operations
+• Deleting a budget also removes its linked expense records for the same user
+• User emails are unique
+
+Technology Stack:
+• Backend: Java 17, Spring Boot, Spring Security (JWT + RBAC), Spring Data JPA, WebSocket/STOMP
+• Database: PostgreSQL via Supabase
+• Web: React
+• Mobile: Kotlin, XML layouts (Activity + Fragments), Retrofit
+• Build Tools: Maven (Backend), Gradle (Android)
+• Deployment: Standard Java hosting + web static hosting + Android APK
+
+5.0 API CONTRACT and COMMUNICATION
+
+5.1 API Standards
+
+API Standards Table
+| Item | Value |
+|---|---|
+| Base URL | /api/v1 |
+| Format | JSON for most requests and responses; multipart/form-data for profile image upload |
+| Authentication | Authorization header using Bearer JWT token on protected endpoints |
+| Response Structure | Success (DTO/Page/map): {"id":1,"title":"Groceries","amount":500.00} OR {"content":[...],"totalElements":1,"totalPages":1,"size":20,"number":0} OR {"message":"Logged out successfully. Please discard your token."}; Error: {"status":404,"error":"Not Found","message":"Resource not found","path":"/api/v1/expenses/99","timestamp":"2026-04-14T10:15:30"}; Validation Error: {"status":400,"error":"Validation Failed","fields":{"email":"Email is required"},"timestamp":"2026-04-14T10:15:30"} |
+
+5.2 Endpoint Specifications
+
+Authentication Endpoints
+| Description | API URL | HTTP Request Method | Format | Authentication | Request Payload | Response Structure |
+|---|---|---|---|---|---|---|
+| Register local account | /api/v1/auth/register | POST | JSON | No | {"name":"John Doe","email":"user@example.com","password":"StrongP@ss123"} | {"accessToken":"<jwt>","tokenType":"Bearer","userId":1,"name":"John Doe","email":"user@example.com","role":"USER"} |
+| Login local account | /api/v1/auth/login | POST | JSON | No | {"email":"user@example.com","password":"StrongP@ss123"} | {"accessToken":"<jwt>","tokenType":"Bearer","userId":1,"name":"John Doe","email":"user@example.com","role":"USER"} |
+| Logout current user | /api/v1/auth/logout | POST | JSON | Yes (Bearer JWT) | N/A | {"message":"Logged out successfully. Please discard your token."} |
+| Get authenticated user profile | /api/v1/auth/me | GET | JSON | Yes (Bearer JWT) | N/A | {"id":1,"name":"John Doe","email":"user@example.com","imageUrl":null,"emailVerified":true,"enabled":true,"status":"ACTIVE","roles":["USER"],"provider":"LOCAL","createdAt":"2026-04-14T10:15:30","lastLoginAt":"2026-04-14T10:20:00"} |
+| Request password reset link | /api/v1/auth/forgot-password | POST | JSON | No | {"email":"user@example.com"} | {"message":"If that email is registered, a reset link has been sent."} |
+| Reset password with token | /api/v1/auth/reset-password | POST | JSON | No | {"token":"<reset-token>","newPassword":"NewStrongP@ss123"} | {"message":"Password updated successfully. Please log in."} |
+| Start Google OAuth login | /oauth2/authorization/google | GET | Redirect flow | No | N/A | 302 Redirect (non-JSON response) |
+| Google OAuth callback (handled by Spring Security) | /login/oauth2/code/google | GET | Redirect flow | No | N/A | 302 Redirect (non-JSON response) |
+
+Expense Management Endpoints
+| Description | API URL | HTTP Request Method | Format | Authentication | Request Payload | Response Structure |
+|---|---|---|---|---|---|---|
+| Create expense | /api/v1/expenses | POST | JSON | Yes (Bearer JWT) | {"title":"Groceries","description":"Weekly grocery run","amount":500.00,"currency":"PHP","category":"Food","expenseDate":"2026-04-14","isRecurring":false,"budgetId":1} | {"id":10,"title":"Groceries","description":"Weekly grocery run","amount":500.00,"currency":"PHP","category":"Food","expenseDate":"2026-04-14","isRecurring":false,"budgetId":1,"userId":1,"createdAt":"2026-04-14T10:15:30","updatedAt":"2026-04-14T10:15:30"} |
+| List user expenses (paginated) | /api/v1/expenses | GET | JSON | Yes (Bearer JWT) | N/A | {"content":[{"id":10,"title":"Groceries","description":"Weekly grocery run","amount":500.00,"currency":"PHP","category":"Food","expenseDate":"2026-04-14","isRecurring":false,"budgetId":1,"userId":1,"createdAt":"2026-04-14T10:15:30","updatedAt":"2026-04-14T10:15:30"}],"totalElements":1,"totalPages":1,"size":20,"number":0} |
+| Get expense by ID | /api/v1/expenses/{id} | GET | JSON | Yes (Bearer JWT) | N/A | {"id":10,"title":"Groceries","description":"Weekly grocery run","amount":500.00,"currency":"PHP","category":"Food","expenseDate":"2026-04-14","isRecurring":false,"budgetId":1,"userId":1,"createdAt":"2026-04-14T10:15:30","updatedAt":"2026-04-14T10:15:30"} |
+| Update expense by ID | /api/v1/expenses/{id} | PUT | JSON | Yes (Bearer JWT) | {"title":"Groceries - Updated","description":"Weekly grocery run","amount":650.00,"currency":"PHP","category":"Food","expenseDate":"2026-04-14","isRecurring":false,"budgetId":1} | {"id":10,"title":"Groceries - Updated","description":"Weekly grocery run","amount":650.00,"currency":"PHP","category":"Food","expenseDate":"2026-04-14","isRecurring":false,"budgetId":1,"userId":1,"createdAt":"2026-04-14T10:15:30","updatedAt":"2026-04-14T10:20:00"} |
+| Delete expense by ID | /api/v1/expenses/{id} | DELETE | JSON | Yes (Bearer JWT) | N/A | 204 No Content (no JSON response body) |
+
+Budget Management Endpoints
+| Description | API URL | HTTP Request Method | Format | Authentication | Request Payload | Response Structure |
+|---|---|---|---|---|---|---|
+| Create budget | /api/v1/budgets | POST | JSON | Yes (Bearer JWT) | {"category":"Food","limitAmount":5000.00,"currency":"PHP","startDate":"2026-04-01","endDate":"2026-04-30","notes":"Monthly food budget"} | {"id":1,"category":"Food","limitAmount":5000.00,"spentAmount":0.00,"remainingAmount":5000.00,"currency":"PHP","startDate":"2026-04-01","endDate":"2026-04-30","notes":"Monthly food budget","userId":1,"createdAt":"2026-04-14T10:15:30","updatedAt":"2026-04-14T10:15:30"} |
+| List user budgets (paginated) | /api/v1/budgets | GET | JSON | Yes (Bearer JWT) | N/A | {"content":[{"id":1,"category":"Food","limitAmount":5000.00,"spentAmount":500.00,"remainingAmount":4500.00,"currency":"PHP","startDate":"2026-04-01","endDate":"2026-04-30","notes":"Monthly food budget","userId":1,"createdAt":"2026-04-14T10:15:30","updatedAt":"2026-04-14T10:20:00"}],"totalElements":1,"totalPages":1,"size":20,"number":0} |
+| Get budget by ID | /api/v1/budgets/{id} | GET | JSON | Yes (Bearer JWT) | N/A | {"id":1,"category":"Food","limitAmount":5000.00,"spentAmount":500.00,"remainingAmount":4500.00,"currency":"PHP","startDate":"2026-04-01","endDate":"2026-04-30","notes":"Monthly food budget","userId":1,"createdAt":"2026-04-14T10:15:30","updatedAt":"2026-04-14T10:20:00"} |
+| Update budget by ID | /api/v1/budgets/{id} | PUT | JSON | Yes (Bearer JWT) | {"category":"Food","limitAmount":6000.00,"currency":"PHP","startDate":"2026-04-01","endDate":"2026-04-30","notes":"Updated monthly food budget"} | {"id":1,"category":"Food","limitAmount":6000.00,"spentAmount":500.00,"remainingAmount":5500.00,"currency":"PHP","startDate":"2026-04-01","endDate":"2026-04-30","notes":"Updated monthly food budget","userId":1,"createdAt":"2026-04-14T10:15:30","updatedAt":"2026-04-14T10:25:00"} |
+| Delete budget by ID | /api/v1/budgets/{id} | DELETE | JSON | Yes (Bearer JWT) | N/A | 204 No Content (no JSON response body) |
+
+External API Integration
+| Description | API URL | HTTP Request Method | Format | Authentication | Request Payload | Response Structure |
+|---|---|---|---|---|---|---|
+| Retrieve exchange rates for currency display selection (backend fetches from external provider with fallback behavior) | /api/v1/exchange-rates | GET | JSON | Yes (Bearer JWT) | N/A | {"result":"success","base_code":"PHP","conversion_rates":{"PHP":1.0,"USD":0.017}} |
+
+Admin Endpoints
+| Description | API URL | HTTP Request Method | Format | Authentication | Request Payload | Response Structure |
+|---|---|---|---|---|---|---|
+| List all users (paginated, admin only) | /api/v1/users | GET | JSON | Yes (Bearer JWT, ADMIN role) | N/A | {"content":[{"id":1,"name":"John Doe","email":"user@example.com","imageUrl":null,"emailVerified":true,"enabled":true,"status":"ACTIVE","roles":["USER"],"provider":"LOCAL","createdAt":"2026-04-14T10:15:30","lastLoginAt":"2026-04-14T10:20:00"}],"totalElements":1,"totalPages":1,"size":20,"number":0} |
+| Get user by ID (admin only) | /api/v1/users/{id} | GET | JSON | Yes (Bearer JWT, ADMIN role) | N/A | {"id":1,"name":"John Doe","email":"user@example.com","imageUrl":null,"emailVerified":true,"enabled":true,"status":"ACTIVE","roles":["USER"],"provider":"LOCAL","createdAt":"2026-04-14T10:15:30","lastLoginAt":"2026-04-14T10:20:00"} |
+| Delete eligible non-admin user by ID (admin only) | /api/v1/users/{id} | DELETE | JSON | Yes (Bearer JWT, ADMIN role) | N/A | 204 No Content (no JSON response body) |
+
+Error Code Examples
+| Error Code | HTTP Status | Example Trigger | Example Error Response JSON |
+|---|---|---|---|
+| AUTH-001 | 401 Unauthorized | Invalid login credentials | {"status":401,"error":"Unauthorized","message":"Invalid email or password","path":"/api/v1/auth/login","timestamp":"2026-04-14T10:30:00"} |
+| AUTH-004 | 403 Forbidden | USER role tries admin endpoint | {"status":403,"error":"Forbidden","message":"Access denied","path":"/api/v1/users","timestamp":"2026-04-14T10:30:00"} |
+| DB-001 | 404 Not Found | Expense or budget does not exist | {"status":404,"error":"Not Found","message":"Resource not found","path":"/api/v1/expenses/999","timestamp":"2026-04-14T10:30:00"} |
+| VALID-001 | 400 Bad Request | Invalid request payload | {"status":400,"error":"Validation Failed","fields":{"email":"Email must be a valid email address"},"timestamp":"2026-04-14T10:30:00"} |
+| BUSINESS-003 | 400 Bad Request | Expense date outside selected budget period | {"status":400,"error":"Bad Request","message":"Expense date must fall within the selected budget period","path":"/api/v1/expenses","timestamp":"2026-04-14T10:30:00"} |
+| SYSTEM-001 | 500 Internal Server Error | Unexpected unhandled exception | {"status":500,"error":"Internal Server Error","message":"An unexpected error occurred","path":"/api/v1/budgets","timestamp":"2026-04-14T10:30:00"} |
+
+--------
+
+6.0 DATABASE DESIGN
+6.1 Entity Relationship Diagram
+
+Detailed Relationships:
+• One-to-Many: User -> Expenses (one user can own multiple expenses)
+• One-to-Many: User -> Budgets (one user can own multiple budgets)
+• One-to-Many: User -> UserRoles (a user may hold one or more roles)
+• Many-to-One: Expense -> User (each expense belongs to one user)
+• Many-to-One: Budget -> User (each budget belongs to one user)
+• Many-to-One: Expense -> Budget (optional budget link per expense)
+
+Key Tables:
+1. users - User accounts and profile/auth metadata
+2. user_roles - User role mapping (USER/ADMIN)
+3. expenses - User expense records
+4. budgets - User budget records
+5. revoked_tokens - Revoked JWT records for logout handling
+
+Table Structure Summary:
+• users: id, name, email, password, provider, provider_id, image_url, enabled, email_verified, last_login_at, created_at, updated_at
+• user_roles: user_id, role
+• expenses: id, user_id, budget_id, title, description, amount, currency, category, expense_date, is_recurring, created_at, updated_at
+• budgets: id, user_id, category, limit_amount, spent_amount, currency, start_date, end_date, notes, created_at, updated_at
+• revoked_tokens: id, token, expires_at, created_at
+
+-----
+
+7.0 UI/UX DESIGN
+7.1 Mobile Application Wireframes
+Authentication Screens
+Login Screen
+Header: App Logo
+Fields: Email, Password
+Buttons: Login, Login with Google
+Links: Register, Forgot Password
+
+Register Screen
+Fields: Name, Email, Password
+Button: Create Account
+
+Bottom Navigation
+[Dashboard] [Expenses] [Budgets] [Profile] [Admin (role-based)]
+
+Dashboard Screen
+Budget Summary Section
+• Total Budget (Month/Year)
+• Total Spent (Month/Year)
+• Active Budgets
+• Tapping Total Budget opens a selector (Total Month or Total Year) for budget totals only
+• Tapping Total Spent opens a selector (Total Month or Total Year) for spending totals only
+Expense Summary Section
+• Recent Expenses List
+• Category and date display
+• Currency display context
+Realtime Behavior
+• Web and Android listen for dashboard update events and refresh data automatically
+
+Expense Screens
+Add Expense Screen
+Fields: Title, Amount, Category, Date, Optional Notes, Optional Budget Link
+Button: Save Expense
+
+Expense List Screen
+List of expenses (Title, Category, Amount, Date)
+Actions: Edit, Delete, View Details
+
+Expense Detail Screen
+Expense Information
+Edit and Delete buttons
+
+Budget Management Screen
+Create Budget Screen
+Fields: Category, Limit Amount, Currency, Optional Start Date, Optional End Date, Optional Notes
+Button: Save Budget
+
+Budget Overview Screen
+Progress Bar
+Spent vs Limit
+Remaining Balance
+Budget details popup shows category/notes/linked expenses without displaying internal numeric budget ID labels
+Linked expenses in budget details are displayed as list rows (title, date, amount) for mobile readability
+When multiple active budgets share the same category, category chips show recency sequence indicators (1 newest, then 2, 3, ...)
+
+Admin Dashboard (Mobile View)
+Admin Home Screen
+User List (Name, Email, Role, Status)
+Allowed Action: Delete eligible non-admin account
+
+Mobile-Specific Features:
+• XML-based layouts (no Compose in current implementation)
+• Secure token storage
+• Role-based UI visibility (admin tab hidden for non-admin users)
+• OAuth deep-link callback handling
+
+Design System:
+• Material components and custom app styling
+• Consistent buttons, input fields, cards, and list actions
+• Mobile-first interaction for Android devices
+
+8.0 PLAN
+8.1 Project Timeline
+Phase 1: Planning and Design (Completed)
+Week 1-2:
+• Requirements, architecture, and API planning
+• Initial SDD and technical decisions
+
+Phase 2: Backend Development (Completed Core)
+Week 3-4:
+• Spring Boot setup with security and layered architecture
+• JWT auth, OAuth integration, user/expense/budget modules
+• Exchange API integration and SMTP email flows
+
+Phase 3: Client Development (Completed Core)
+Week 5-6:
+• Web feature implementation (auth, dashboard, expenses, budgets, profile, admin)
+• Android implementation with XML-based UI and Retrofit integration
+
+Phase 4: Security and Feature Hardening (Mostly Completed)
+Week 7-8:
+• Secure token storage in web and mobile
+• Profile image upload/download
+• Realtime dashboard backend events and web/android websocket client behavior
+
+Phase 5: Finalization and Documentation (In Progress)
+Week 9-10:
+• Evidence pack compilation (screenshots and endpoint proofs)
+• Architecture diagram inclusion in docs
+• Final QA and documentation cleanup
+
+Milestones:
+• M1: Design documents drafted
+• M2: Backend authentication and core CRUD stabilized
+• M3: Web and Android core features integrated
+• M4: Security hardening and profile upload completed
+• M5: Documentation and evidence finalization in progress
+
+Critical Path:
+• Authentication and authorization stability
+• Expense and budget consistency logic
+• Web/mobile API contract alignment
+• Final documentation and verification artifacts
+
+Risk Mitigation:
+• Keep one source of truth for API contracts in docs
+• Validate request DTOs and ownership checks in backend
+• Keep mobile and web payload shapes aligned to backend DTOs
+• Prioritize core feature correctness over non-essential enhancements
