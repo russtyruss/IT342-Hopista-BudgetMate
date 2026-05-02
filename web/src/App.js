@@ -9,10 +9,12 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import OAuth2RedirectPage from './pages/OAuth2RedirectPage';
 import DashboardPage from './pages/DashboardPage';
 import ExpensesPage from './pages/ExpensesPage';
 import BudgetsPage from './pages/BudgetsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import ProfilePage from './pages/ProfilePage';
 
 import './App.css';
 
@@ -29,11 +31,13 @@ function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/oauth2/redirect" element={<OAuth2RedirectPage />} />
 
               {/* Protected routes */}
               <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
               <Route path="/expenses" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
               <Route path="/budgets" element={<ProtectedRoute><BudgetsPage /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboardPage /></ProtectedRoute>} />
 
               {/* Default redirect */}

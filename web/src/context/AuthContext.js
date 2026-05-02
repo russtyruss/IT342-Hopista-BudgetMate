@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { login as apiLogin, logout as apiLogout, getMe } from '../api/authApi';
+import { getSecureToken, removeSecureToken, saveTokenSecurely } from '../utils/secureTokenStorage';
 
 const AuthContext = createContext(null);
 const MAX_TIMEOUT_MS = 2147483647;
@@ -12,6 +13,15 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(true);
 
+  const setAndPersistUser = useCallback((nextUser) => {
+    if (nextUser) {
+      localStorage.setItem('user', JSON.stringify(nextUser));
+    } else {
+      localStorage.removeItem('user');
+    }
+    setUser(nextUser);
+  }, []);
+
   const clearLogoutTimer = () => {
     if (logoutTimerRef.current) {
       clearTimeout(logoutTimerRef.current);
@@ -20,7 +30,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const clearAuthStorage = () => {
-    localStorage.removeItem('token');
+    removeSecureToken();
     localStorage.removeItem('user');
   };
 
@@ -39,14 +49,14 @@ export const AuthProvider = ({ children }) => {
   const scheduleAutoLogout = useCallback(() => {
     clearLogoutTimer();
 
-    const token = localStorage.getItem('token');
+    const token = getSecureToken();
     const expiryMs = decodeTokenExpiryMs(token);
     if (!expiryMs) return;
 
     const delay = expiryMs - Date.now();
     if (delay <= 0) {
       clearAuthStorage();
-      setUser(null);
+        setAndPersistUser(null);
       return;
     }
 
@@ -58,14 +68,28 @@ export const AuthProvider = ({ children }) => {
       }
 
       clearAuthStorage();
-      setUser(null);
+      setAndPersistUser(null);
       window.location.href = '/login';
     }, timeout);
+  }, [setAndPersistUser]);
+
+  const refreshUser = useCallback(async () => {
+    const res = await getMe();
+    setAndPersistUser(res.data);
+    return res.data;
+  }, [setAndPersistUser]);
+
+  const patchUser = useCallback((patch) => {
+    setUser((prevUser) => {
+      const nextUser = { ...(prevUser || {}), ...(patch || {}) };
+      localStorage.setItem('user', JSON.stringify(nextUser));
+      return nextUser;
+    });
   }, []);
 
   // Verify token on mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getSecureToken();
     if (token) {
       const expiryMs = decodeTokenExpiryMs(token);
       if (expiryMs && expiryMs <= Date.now()) {
@@ -77,39 +101,49 @@ export const AuthProvider = ({ children }) => {
 
       getMe()
         .then((res) => {
-          setUser(res.data);
+          setAndPersistUser(res.data);
           scheduleAutoLogout();
         })
         .catch(() => {
           clearAuthStorage();
-          setUser(null);
+          setAndPersistUser(null);
         })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
     }
     return () => clearLogoutTimer();
-  }, [scheduleAutoLogout]);
+  }, [scheduleAutoLogout, setAndPersistUser]);
 
   const login = useCallback(async (email, password) => {
     const res = await apiLogin({ email, password });
-    const { accessToken, ...userInfo } = res.data;
-    localStorage.setItem('token', accessToken);
-    localStorage.setItem('user', JSON.stringify(userInfo));
-    setUser(userInfo);
+    const { accessToken } = res.data;
+    saveTokenSecurely(accessToken);
+    const userInfo = await refreshUser();
     scheduleAutoLogout();
     return userInfo;
-  }, [scheduleAutoLogout]);
+  }, [refreshUser, scheduleAutoLogout]);
+
+  const loginWithOAuthToken = useCallback(async (token) => {
+    if (!token) {
+      throw new Error('OAuth token is missing.');
+    }
+
+    saveTokenSecurely(token);
+    const userInfo = await refreshUser();
+    scheduleAutoLogout();
+    return userInfo;
+  }, [refreshUser, scheduleAutoLogout]);
 
   const logout = useCallback(async () => {
     try { await apiLogout(); } catch (_) {}
     clearLogoutTimer();
     clearAuthStorage();
-    setUser(null);
-  }, []);
+    setAndPersistUser(null);
+  }, [setAndPersistUser]);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, loginWithOAuthToken, logout, loading, refreshUser, patchUser }}>
       {children}
     </AuthContext.Provider>
   );

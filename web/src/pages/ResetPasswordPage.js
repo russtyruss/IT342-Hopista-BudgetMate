@@ -16,6 +16,15 @@ const ResetPasswordPage = () => {
     if (token) setForm((f) => ({ ...f, token }));
   }, [searchParams]);
 
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    const clearTimer = setTimeout(() => setError(''), 3000);
+    return () => clearTimeout(clearTimer);
+  }, [error]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');

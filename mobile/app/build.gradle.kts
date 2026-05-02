@@ -1,19 +1,24 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.compose")
 }
+
+val deviceHost = (project.findProperty("DEVICE_HOST") as String?) ?: "127.0.0.1"
 
 android {
     namespace = "budgetmate"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "edu.cit.delacruz.budgetmate"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "API_BASE_URL_EMULATOR", "\"http://10.0.2.2:8080/api/v1/\"")
+        buildConfigField("String", "WS_BASE_URL_EMULATOR", "\"ws://10.0.2.2:8080/ws-native\"")
+        buildConfigField("String", "API_BASE_URL_DEVICE", "\"http://$deviceHost:8080/api/v1/\"")
+        buildConfigField("String", "WS_BASE_URL_DEVICE", "\"ws://$deviceHost:8080/ws-native\"")
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/api/v1/\"")
         buildConfigField("String", "WS_BASE_URL", "\"ws://10.0.2.2:8080/ws-native\"")
 
@@ -40,28 +45,19 @@ android {
     }
 
     buildFeatures {
-        compose = true
         buildConfig = true
     }
 }
 
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2025.01.01")
-
-    implementation(composeBom)
-    androidTestImplementation(composeBom)
-
-    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.4")
+    implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.activity:activity-compose:1.10.0")
-    implementation("androidx.navigation:navigation-compose:2.8.5")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
-
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
@@ -77,7 +73,4 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

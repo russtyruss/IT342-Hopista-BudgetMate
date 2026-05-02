@@ -1,35 +1,34 @@
 package budgetmate.data.session
 
 import android.content.Context
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-
-private val Context.dataStore by preferencesDataStore(name = "budgetmate_session")
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
 class SessionManager(private val context: Context) {
 
-    private val tokenKey = stringPreferencesKey("jwt_token")
+    private val tokenKey = "jwt_token"
 
-    val tokenFlow: Flow<String?> = context.dataStore.data.map { preferences: Preferences ->
-        preferences[tokenKey]
+    private val encryptedPrefs by lazy {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        EncryptedSharedPreferences.create(
+            context,
+            "budgetmate_secure_session",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
     }
 
     suspend fun saveToken(token: String) {
-        context.dataStore.edit { prefs ->
-            prefs[tokenKey] = token
-        }
+        encryptedPrefs.edit().putString(tokenKey, token).apply()
     }
 
     suspend fun clearToken() {
-        context.dataStore.edit { prefs ->
-            prefs.remove(tokenKey)
-        }
+        encryptedPrefs.edit().remove(tokenKey).apply()
     }
 
-    suspend fun getToken(): String? = tokenFlow.first()
+    suspend fun getToken(): String? = encryptedPrefs.getString(tokenKey, null)
 }

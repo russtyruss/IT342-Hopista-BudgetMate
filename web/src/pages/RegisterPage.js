@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../api/authApi';
 import './Auth.css';
@@ -9,6 +9,19 @@ const RegisterPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!success && !error) {
+      return;
+    }
+
+    const clearTimer = setTimeout(() => {
+      setSuccess('');
+      setError('');
+    }, 3000);
+
+    return () => clearTimeout(clearTimer);
+  }, [success, error]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 

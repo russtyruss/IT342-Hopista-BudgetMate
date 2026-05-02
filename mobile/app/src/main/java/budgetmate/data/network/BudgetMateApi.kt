@@ -5,6 +5,7 @@ import budgetmate.data.model.ApiMessage
 import budgetmate.data.model.AuthResponse
 import budgetmate.data.model.BudgetRequest
 import budgetmate.data.model.BudgetResponse
+import budgetmate.data.model.ChangePasswordRequest
 import budgetmate.data.model.ExchangeConvertResponse
 import budgetmate.data.model.ExchangeRatesResponse
 import budgetmate.data.model.ExpenseRequest
@@ -13,11 +14,17 @@ import budgetmate.data.model.ForgotPasswordRequest
 import budgetmate.data.model.LoginRequest
 import budgetmate.data.model.RegisterRequest
 import budgetmate.data.model.ResetPasswordRequest
+import budgetmate.data.model.UpdateProfileNameRequest
 import budgetmate.data.model.UserResponse
+import okhttp3.MultipartBody
+import okhttp3.ResponseBody
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -58,7 +65,7 @@ interface BudgetMateApi {
     suspend fun updateBudget(@Path("id") id: Long, @Body request: BudgetRequest): BudgetResponse
 
     @DELETE("budgets/{id}")
-    suspend fun deleteBudget(@Path("id") id: Long): ApiMessage
+    suspend fun deleteBudget(@Path("id") id: Long): Response<Unit>
 
     @GET("expenses")
     suspend fun getExpenses(
@@ -77,7 +84,7 @@ interface BudgetMateApi {
     suspend fun updateExpense(@Path("id") id: Long, @Body request: ExpenseRequest): ExpenseResponse
 
     @DELETE("expenses/{id}")
-    suspend fun deleteExpense(@Path("id") id: Long): ApiMessage
+    suspend fun deleteExpense(@Path("id") id: Long): Response<Unit>
 
     @GET("exchange-rates")
     suspend fun getExchangeRates(@Query("base") base: String = "PHP"): ExchangeRatesResponse
@@ -98,6 +105,19 @@ interface BudgetMateApi {
     @GET("users/me")
     suspend fun getCurrentUser(): UserResponse
 
+    @PUT("users/me/name")
+    suspend fun updateMyName(@Body request: UpdateProfileNameRequest): UserResponse
+
+    @PUT("users/me/password")
+    suspend fun changeMyPassword(@Body request: ChangePasswordRequest): Response<Unit>
+
+    @Multipart
+    @POST("users/me/profile-image")
+    suspend fun uploadMyProfileImage(@Part file: MultipartBody.Part): UserResponse
+
+    @GET("users/me/profile-image")
+    suspend fun downloadMyProfileImage(@Query("t") cacheKey: Long = System.currentTimeMillis()): Response<ResponseBody>
+
     @DELETE("users/{id}")
-    suspend fun deleteUser(@Path("id") id: Long): ApiMessage
+    suspend fun deleteUser(@Path("id") id: Long): Response<Unit>
 }

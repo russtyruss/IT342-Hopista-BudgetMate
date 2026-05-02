@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 import { getUsers, deleteUser } from '../api/userApi';
+import { getCachedData, setCachedData } from '../utils/pageDataCache';
 import './AdminDashboard.css';
 
 const AdminDashboardPage = () => {
@@ -12,7 +13,9 @@ const AdminDashboardPage = () => {
     setError('');
     try {
       const res = await getUsers({ size: 200, sort: 'createdAt,desc' });
-      setUsers(res.data?.content || res.data || []);
+      const nextUsers = res.data?.content || res.data || [];
+      setUsers(nextUsers);
+      setCachedData('admin:users', nextUsers);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load users.');
     } finally {
@@ -21,8 +24,22 @@ const AdminDashboardPage = () => {
   };
 
   useEffect(() => {
+    const cachedUsers = getCachedData('admin:users');
+    if (cachedUsers) {
+      setUsers(cachedUsers);
+      setLoading(false);
+    }
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    const clearTimer = setTimeout(() => setError(''), 3000);
+    return () => clearTimeout(clearTimer);
+  }, [error]);
 
   const handleDelete = async (user) => {
     const confirmed = window.confirm(`Delete user ${user.name} (${user.email})? This action cannot be undone.`);
@@ -31,10 +48,16 @@ const AdminDashboardPage = () => {
     }
 
     try {
+      setUsers((prev) => {
+        const next = prev.filter((u) => u.id !== user.id);
+        setCachedData('admin:users', next);
+        return next;
+      });
       await deleteUser(user.id);
-      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      fetchUsers();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete user.');
+      fetchUsers();
     }
   };
 

@@ -7,18 +7,22 @@ import com.google.gson.reflect.TypeToken
 import budgetmate.data.model.AuthResponse
 import budgetmate.data.model.BudgetRequest
 import budgetmate.data.model.BudgetResponse
+import budgetmate.data.model.ChangePasswordRequest
 import budgetmate.data.model.ExchangeConvertResponse
 import budgetmate.data.model.ExchangeRatesResponse
 import budgetmate.data.model.ExpenseRequest
 import budgetmate.data.model.ExpenseResponse
 import budgetmate.data.model.ForgotPasswordRequest
 import budgetmate.data.model.LoginRequest
+import budgetmate.data.model.ProfileImagePayload
 import budgetmate.data.model.RegisterRequest
 import budgetmate.data.model.ResetPasswordRequest
+import budgetmate.data.model.UpdateProfileNameRequest
 import budgetmate.data.model.UserResponse
 import budgetmate.data.network.BudgetMateApi
 import java.io.IOException
 import org.json.JSONObject
+import okhttp3.MultipartBody
 import retrofit2.HttpException
 
 class BudgetMateRepository(private val api: BudgetMateApi) {
@@ -40,6 +44,33 @@ class BudgetMateRepository(private val api: BudgetMateApi) {
 
     suspend fun me(): Result<UserResponse> = wrap { api.me() }
 
+    suspend fun updateMyName(name: String): Result<UserResponse> = wrap {
+        api.updateMyName(UpdateProfileNameRequest(name))
+    }
+
+    suspend fun changeMyPassword(currentPassword: String, newPassword: String): Result<Unit> = wrap {
+        val response = api.changeMyPassword(ChangePasswordRequest(currentPassword, newPassword))
+        if (!response.isSuccessful) {
+            throw HttpException(response)
+        }
+        Unit
+    }
+
+    suspend fun uploadMyProfileImage(part: MultipartBody.Part): Result<UserResponse> = wrap {
+        api.uploadMyProfileImage(part)
+    }
+
+    suspend fun downloadMyProfileImage(): Result<ProfileImagePayload> = wrap {
+        val response = api.downloadMyProfileImage(System.currentTimeMillis())
+        if (!response.isSuccessful) {
+            throw HttpException(response)
+        }
+
+        val body = response.body() ?: throw IOException("Profile image is empty")
+        val contentType = response.headers()["Content-Type"] ?: body.contentType()?.toString()
+        ProfileImagePayload(body.bytes(), contentType)
+    }
+
     suspend fun forgotPassword(email: String): Result<String> = wrap {
         api.forgotPassword(ForgotPasswordRequest(email)).message ?: "Password reset email sent"
     }
@@ -59,7 +90,10 @@ class BudgetMateRepository(private val api: BudgetMateApi) {
     }
 
     suspend fun deleteBudget(id: Long): Result<Unit> = wrap {
-        api.deleteBudget(id)
+        val response = api.deleteBudget(id)
+        if (!response.isSuccessful) {
+            throw HttpException(response)
+        }
         Unit
     }
 
@@ -74,7 +108,10 @@ class BudgetMateRepository(private val api: BudgetMateApi) {
     }
 
     suspend fun deleteExpense(id: Long): Result<Unit> = wrap {
-        api.deleteExpense(id)
+        val response = api.deleteExpense(id)
+        if (!response.isSuccessful) {
+            throw HttpException(response)
+        }
         Unit
     }
 
@@ -91,7 +128,10 @@ class BudgetMateRepository(private val api: BudgetMateApi) {
     }
 
     suspend fun deleteUser(id: Long): Result<Unit> = wrap {
-        api.deleteUser(id)
+        val response = api.deleteUser(id)
+        if (!response.isSuccessful) {
+            throw HttpException(response)
+        }
         Unit
     }
 
@@ -130,8 +170,8 @@ class BudgetMateRepository(private val api: BudgetMateApi) {
                         val keys = fieldErrors.keys()
                         while (keys.hasNext()) {
                             val key = keys.next()
-                            val value = fieldErrors.opt(key)?.toString().orEmpty().trim()
-                            if (value.isNotBlank()) {
+                            val value = normalizeMessage(fieldErrors.opt(key)?.toString())
+                            if (value != null) {
                                 aggregated.add(value)
                             }
                         }
@@ -140,9 +180,14 @@ class BudgetMateRepository(private val api: BudgetMateApi) {
                         }
                     }
 
-                    val message = json.optString("message")
-                    if (message.isNotBlank()) {
+                    val message = normalizeMessage(json.optString("message"))
+                    if (message != null) {
                         return message
+                    }
+
+                    val errorText = normalizeMessage(json.optString("error"))
+                    if (errorText != null) {
+                        return errorText
                     }
                 } catch (_: Exception) {
                     // Fall through to generic handling if body is not valid JSON.
@@ -158,6 +203,20 @@ class BudgetMateRepository(private val api: BudgetMateApi) {
             return "Unable to connect to server. Please check your network and try again."
         }
 
-        return error.message ?: "Request failed. Please try again."
+        return normalizeMessage(error.message) ?: "Request failed. Please try again."
+    }
+
+    private fun normalizeMessage(raw: String?): String? {
+        val value = raw.orEmpty().trim()
+        if (value.isBlank()) {
+            return null
+        }
+        if (value.equals("null", ignoreCase = true)) {
+            return null
+        }
+        if (value.equals("undefined", ignoreCase = true)) {
+            return null
+        }
+        return value
     }
 }

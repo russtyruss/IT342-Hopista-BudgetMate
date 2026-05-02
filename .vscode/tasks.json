@@ -1,0 +1,26 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Android: Start Pixel_4 Only",
+			"type": "shell",
+			"command": "SDK_ROOT=\"${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}\"; ADB=\"$SDK_ROOT/platform-tools/adb\"; if ! \"$ADB\" devices | grep -q \"emulator-\"; then open -na \"Android Emulator\" --args -avd Pixel_4 >/tmp/pixel4.log 2>&1; fi; echo 'Waiting for emulator boot (max 180s)...'; for i in {1..180}; do if \"$ADB\" shell getprop sys.boot_completed 2>/dev/null | grep -q '^1$'; then break; fi; sleep 1; done; if ! \"$ADB\" shell getprop sys.boot_completed 2>/dev/null | grep -q '^1$'; then echo 'Emulator boot timeout. Check /tmp/pixel4.log'; exit 1; fi; \"$ADB\" devices",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Android: Start Pixel_4 + Install Debug",
+			"type": "shell",
+			"command": "SDK_ROOT=\"${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}\"; ADB=\"$SDK_ROOT/platform-tools/adb\"; if ! \"$ADB\" devices | grep -q \"emulator-\"; then open -na \"Android Emulator\" --args -avd Pixel_4 >/tmp/pixel4.log 2>&1; fi; echo 'Waiting for emulator boot (max 180s)...'; for i in {1..180}; do if \"$ADB\" shell getprop sys.boot_completed 2>/dev/null | grep -q '^1$'; then break; fi; sleep 1; done; if ! \"$ADB\" shell getprop sys.boot_completed 2>/dev/null | grep -q '^1$'; then echo 'Emulator boot timeout. Check /tmp/pixel4.log'; exit 1; fi; cd mobile && ./gradlew installDebug",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Android: Install Debug Only",
+			"type": "shell",
+			"command": "cd mobile && ./gradlew installDebug",
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}

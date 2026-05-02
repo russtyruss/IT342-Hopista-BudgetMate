@@ -13,6 +13,16 @@
   box-shadow: 0 1px 4px rgba(0,0,0,.06);
 }
 
+.budget-clickable {
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.budget-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+}
+
 .budget-card-header {
   display: flex;
   justify-content: space-between;
@@ -32,7 +42,9 @@
   margin-top: 8px;
   font-size: 11px;
   color: #9ca3af;
-  text-align: right;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .budget-link-card {
@@ -89,6 +101,86 @@
   background: #ffffff;
   color: #111827;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.linked-expenses-list {
+  display: block;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-top: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.linked-expense-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.linked-expense-item:last-child {
+  border-bottom: 0;
+}
+
+.linked-expense-item p {
+  margin: 4px 0 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.detail-sheet {
+  width: min(100%, 560px);
+}
+
+.detail-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 10px 12px;
+}
+
+.detail-label {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.detail-value {
+  color: #111827;
+  font-weight: 600;
+  text-align: right;
+}
+
+.detail-note-block {
+  margin-top: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 10px 12px;
+}
+
+.detail-note-block p {
+  margin: 6px 0 0;
+  color: #111827;
+  line-height: 1.45;
 }
 
 .budget-link-field {

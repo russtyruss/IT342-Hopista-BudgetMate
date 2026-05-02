@@ -1,0 +1,153 @@
+.profile-page {
+  max-width: 920px;
+}
+
+.profile-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.07);
+}
+
+.profile-card h2 {
+  font-size: 18px;
+  margin-bottom: 14px;
+  color: #111827;
+}
+
+.profile-main-layout {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.65fr) minmax(440px, 2.35fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.profile-picture-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-name-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 66px;
+}
+
+.profile-name-column form {
+  display: block;
+}
+
+.profile-name-column .form-group {
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+.profile-name-column .btn-primary {
+  margin-top: 10.5px;
+  width: auto;
+  display: inline-block;
+}
+
+.profile-preview {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #374151;
+  font-weight: 700;
+  font-size: 42px;
+}
+
+.profile-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-upload-trigger {
+  width: auto;
+  min-width: 0;
+  padding: 6px 9px;
+  font-size: 11px;
+}
+
+.profile-download-link {
+  color: #1d4ed8;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.profile-download-link:hover {
+  text-decoration: underline;
+}
+
+.profile-success {
+  background: #dcfce7;
+  color: #166534;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.profile-upload-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.profile-upload-modal {
+  width: min(100%, 420px);
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.3);
+}
+
+.profile-upload-modal h3 {
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.profile-upload-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+@media (max-width: 720px) {
+  .profile-main-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .profile-name-column {
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .profile-upload-trigger {
+    width: auto;
+    align-self: center;
+  }
+
+  .profile-name-column .btn-primary {
+    width: 100%;
+    align-self: stretch;
+    margin-top: 8px;
+  }
+}

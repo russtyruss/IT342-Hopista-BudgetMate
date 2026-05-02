@@ -28,6 +28,7 @@ const Navbar = () => {
           <Link to="/dashboard">Dashboard</Link>
           <Link to="/expenses">Expenses</Link>
           <Link to="/budgets">Budgets</Link>
+          <Link to="/profile">Profile</Link>
           {isAdmin && <Link to="/admin">Admin</Link>}
           <div className="currency-switcher">
             <label htmlFor="displayCurrency">Currency</label>
