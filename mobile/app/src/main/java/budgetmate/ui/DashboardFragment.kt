@@ -48,6 +48,7 @@ class DashboardFragment : Fragment() {
     private val budgetStatusAdapter by lazy { BudgetStatusAdapter() }
     private var budgetSummaryPeriod: SummaryPeriod = SummaryPeriod.MONTH
     private var spentSummaryPeriod: SummaryPeriod = SummaryPeriod.MONTH
+    private var latestUiState: AppUiState? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -80,29 +81,8 @@ class DashboardFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.uiState.collect { state ->
-                    val budgetCategorySequenceById = buildCategorySequenceByBudgetId(state.budgets)
-                    val filteredBudgets = state.budgets.filter { matchesBudgetPeriod(it, budgetSummaryPeriod) }
-                    val filteredExpenses = state.expenses.filter { matchesExpensePeriod(it, spentSummaryPeriod) }
-                    val totalBudget = filteredBudgets.sumOf {
-                        convertAmount(it.limitAmount, it.currency, state.selectedCurrency, state)
-                    }
-                    val totalExpense = filteredExpenses.sumOf {
-                        convertAmount(it.amount, it.currency, state.selectedCurrency, state)
-                    }
-                    tvWelcome.text = "Welcome back, ${state.user?.name ?: "User"}"
-                    tvSummaryBudget.text = CurrencyUi.formatAmount(totalBudget, state.selectedCurrency)
-                    tvSummaryExpense.text = CurrencyUi.formatAmount(totalExpense, state.selectedCurrency)
-                    tvSummaryActiveBudgets.text = state.budgets.size.toString()
-
-                    recentExpensesAdapter.submit(state.expenses.take(10), state.selectedCurrency, state)
-                    // Always recompute spentAmount for each budget from expenses, matching Budgets page logic
-                    val budgetsWithSpent = state.budgets.map { budget ->
-                        val spent = state.expenses
-                            .filter { it.budgetId == budget.id }
-                            .sumOf { convertAmount(it.amount, it.currency, state.selectedCurrency, state) }
-                        budget.copy(spentAmount = spent)
-                    }
-                    budgetStatusAdapter.submit(budgetsWithSpent, state.selectedCurrency, state, budgetCategorySequenceById)
+                    latestUiState = state
+                    renderDashboard(state)
                 }
             }
         }
@@ -144,6 +124,7 @@ class DashboardFragment : Fragment() {
                     spentSummaryPeriod = selected
                 }
                 updateSummaryLabels()
+                latestUiState?.let { renderDashboard(it) }
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel", null)
@@ -157,6 +138,32 @@ class DashboardFragment : Fragment() {
         val spentLabel = if (spentSummaryPeriod == SummaryPeriod.MONTH) "Month" else "Year"
         tvSummaryBudgetLabel.text = "Total Budget ($budgetLabel)"
         tvSummaryExpenseLabel.text = "Total Spent ($spentLabel)"
+    }
+
+    private fun renderDashboard(state: AppUiState) {
+        val budgetCategorySequenceById = buildCategorySequenceByBudgetId(state.budgets)
+        val filteredBudgets = state.budgets.filter { matchesBudgetPeriod(it, budgetSummaryPeriod) }
+        val filteredExpenses = state.expenses.filter { matchesExpensePeriod(it, spentSummaryPeriod) }
+        val totalBudget = filteredBudgets.sumOf {
+            convertAmount(it.limitAmount, it.currency, state.selectedCurrency, state)
+        }
+        val totalExpense = filteredExpenses.sumOf {
+            convertAmount(it.amount, it.currency, state.selectedCurrency, state)
+        }
+        tvWelcome.text = "Welcome back, ${state.user?.name ?: "User"}"
+        tvSummaryBudget.text = CurrencyUi.formatAmount(totalBudget, state.selectedCurrency)
+        tvSummaryExpense.text = CurrencyUi.formatAmount(totalExpense, state.selectedCurrency)
+        tvSummaryActiveBudgets.text = state.budgets.size.toString()
+
+        recentExpensesAdapter.submit(state.expenses.take(10), state.selectedCurrency, state)
+        // Always recompute spentAmount for each budget from expenses, matching Budgets page logic
+        val budgetsWithSpent = state.budgets.map { budget ->
+            val spent = state.expenses
+                .filter { it.budgetId == budget.id }
+                .sumOf { convertAmount(it.amount, it.currency, state.selectedCurrency, state) }
+            budget.copy(spentAmount = spent)
+        }
+        budgetStatusAdapter.submit(budgetsWithSpent, state.selectedCurrency, state, budgetCategorySequenceById)
     }
 
     private fun matchesBudgetPeriod(budget: BudgetResponse, period: SummaryPeriod): Boolean {

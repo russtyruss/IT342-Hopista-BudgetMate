@@ -56,6 +56,7 @@ class AppViewModel(
     companion object {
         private const val DATA_CACHE_WINDOW_MS = 6_000L
         private const val PROFILE_IMAGE_CACHE_WINDOW_MS = 20_000L
+        private const val DASHBOARD_PAGE_SIZE = 200
     }
 
     private val _uiState = MutableStateFlow(AppUiState())
@@ -312,7 +313,7 @@ class AppViewModel(
         }
 
         viewModelScope.launch {
-            repository.getBudgets()
+            repository.getBudgets(size = DASHBOARD_PAGE_SIZE)
                 .onSuccess { budgets ->
                     lastBudgetsLoadedAt = System.currentTimeMillis()
                     _uiState.value = _uiState.value.copy(budgets = budgets)
@@ -373,7 +374,7 @@ class AppViewModel(
         }
 
         viewModelScope.launch {
-            repository.getExpenses()
+            repository.getExpenses(size = DASHBOARD_PAGE_SIZE)
                 .onSuccess { expenses ->
                     lastExpensesLoadedAt = System.currentTimeMillis()
                     _uiState.value = _uiState.value.copy(expenses = expenses)

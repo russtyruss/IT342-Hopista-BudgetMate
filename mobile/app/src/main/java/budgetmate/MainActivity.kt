@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private var isUpdatingCurrencySpinner = false
     private var currencyAdapter: ArrayAdapter<String>? = null
     private var lastSupportedCurrencies: List<String> = emptyList()
+    private var lastUserId: Long? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -183,6 +184,11 @@ class MainActivity : AppCompatActivity() {
                         appViewModel.clearAuthPrompt()
                     }
 
+                    if (lastUserId != null && state.user == null) {
+                        clearLoginFields()
+                    }
+                    lastUserId = state.user?.id
+
                     val btnLogin = findViewById<android.widget.Button>(R.id.btnLogin)
                     val isSigningIn = state.loading && state.authMode == AuthMode.LOGIN
                     btnLogin.text = if (isSigningIn) "Signing in..." else "Sign In"
@@ -248,6 +254,11 @@ class MainActivity : AppCompatActivity() {
         findViewById<android.widget.EditText>(R.id.etRegisterName).setText("")
         findViewById<android.widget.EditText>(R.id.etRegisterEmail).setText("")
         findViewById<android.widget.EditText>(R.id.etRegisterPassword).setText("")
+    }
+
+    private fun clearLoginFields() {
+        findViewById<android.widget.EditText>(R.id.etLoginEmail).setText("")
+        findViewById<android.widget.EditText>(R.id.etLoginPassword).setText("")
     }
 
     private fun replaceMainFragment(fragment: androidx.fragment.app.Fragment) {
