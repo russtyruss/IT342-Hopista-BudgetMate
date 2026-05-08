@@ -79,6 +79,18 @@ const ExpensesPage = () => {
     };
   }, [error]);
 
+  useEffect(() => {
+    if (!selectedExpense) {
+      return;
+    }
+
+    const stillExists = expenses.some((expense) => Number(expense.id) === Number(selectedExpense.id));
+    if (!stillExists) {
+      setShowDetails(false);
+      setSelectedExpense(null);
+    }
+  }, [expenses, selectedExpense]);
+
   const categorySequenceByBudgetId = useMemo(() => {
     const grouped = new Map();
 

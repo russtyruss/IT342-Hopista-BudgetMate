@@ -79,6 +79,18 @@ const BudgetsPage = () => {
     };
   }, [error]);
 
+  useEffect(() => {
+    if (!selectedBudget) {
+      return;
+    }
+
+    const stillExists = budgets.some((budget) => Number(budget.id) === Number(selectedBudget.id));
+    if (!stillExists) {
+      setShowLinkedExpenses(false);
+      setSelectedBudget(null);
+    }
+  }, [budgets, selectedBudget]);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
