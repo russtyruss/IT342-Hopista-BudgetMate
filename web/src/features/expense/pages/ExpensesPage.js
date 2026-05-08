@@ -226,6 +226,10 @@ const ExpensesPage = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm('Delete this expense?')) {
+      if (selectedExpense && Number(selectedExpense.id) === Number(id)) {
+        setShowDetails(false);
+        setSelectedExpense(null);
+      }
       setExpenses((prev) => {
         const next = prev.filter((expense) => Number(expense.id) !== Number(id));
         setCachedData('expenses:list', next);
