@@ -191,6 +191,10 @@ const BudgetsPage = () => {
   };
 
   const openLinkedExpenses = (budget) => {
+    const stillExists = budgets.some((item) => Number(item.id) === Number(budget.id));
+    if (!stillExists) {
+      return;
+    }
     setSelectedBudget(budget);
     setShowLinkedExpenses(true);
   };

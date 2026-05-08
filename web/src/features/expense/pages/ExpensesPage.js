@@ -252,6 +252,10 @@ const ExpensesPage = () => {
   };
 
   const openExpenseDetails = (expense) => {
+    const stillExists = expenses.some((item) => Number(item.id) === Number(expense.id));
+    if (!stillExists) {
+      return;
+    }
     setSelectedExpense(expense);
     setShowDetails(true);
   };
