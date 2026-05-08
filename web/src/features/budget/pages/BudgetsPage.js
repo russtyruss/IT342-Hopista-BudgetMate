@@ -177,10 +177,8 @@ const BudgetsPage = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm('Delete this budget? All expenses linked to this budget will also be deleted.')) {
-      if (selectedBudget && Number(selectedBudget.id) === Number(id)) {
-        setShowLinkedExpenses(false);
-        setSelectedBudget(null);
-      }
+      setShowLinkedExpenses(false);
+      setSelectedBudget(null);
       setBudgets((prev) => {
         const next = prev.filter((budget) => Number(budget.id) !== Number(id));
         setCachedData('budgets:list', next);
