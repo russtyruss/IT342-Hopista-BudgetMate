@@ -19,7 +19,7 @@ Notes:
 2) RBAC (Admin)
 - USER blocked from admin routes (web)
 - ADMIN can access admin dashboard (web)
-- ADMIN can list users (web)
+- ADMIN can see list users (web)
 - ADMIN can delete non-admin user (web)
 - ADMIN cannot delete self (web)
 
