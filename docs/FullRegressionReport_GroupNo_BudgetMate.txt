@@ -1,0 +1,122 @@
+Full Regression Test Report
+Project: BudgetMate
+Date: 2026-05-03
+Branch: refactor/vertical-slice
+Report Version: 1.0
+
+Repository: https://github.com/russtyruss/IT342-Hopista-BudgetMate.git
+
+1. Project Information
+- Repository: IT342-Hopista-BudgetMate
+- Platforms: Spring Boot backend, React web, Android (Kotlin)
+- Refactor goal: Apply Vertical Slice Architecture across backend, web, and mobile
+
+2. Refactoring Summary
+- Backend reorganized by feature slices: auth, user, budget, expense
+- Web reorganized by feature slices: auth, dashboard, budget, expense, admin, profile
+- Mobile reorganized by feature slices: admin, dashboard, budget, expense, profile
+- Cross-cutting modules moved to shared/core layers (security, config, network, storage, utils)
+
+3. Updated Project Structure (Summary)
+Backend:
+- backend/src/main/java/edu/cit/hopista/campusclinic/features/*
+- backend/src/main/java/edu/cit/hopista/campusclinic/shared/*
+
+Web:
+- web/src/features/*
+- web/src/shared/*
+
+Mobile:
+- mobile/app/src/main/java/budgetmate/features/*
+- mobile/app/src/main/java/budgetmate/shared/*
+
+4. Test Plan Documentation
+Reference: docs/software-test-plan.txt
+Requirements Reference: docs/srs.txt
+
+5. Automated Test Evidence
+Backend:
+- Command: cd backend && ./mvnw test
+- Result: BUILD SUCCESS (2026-05-03)
+- Log: docs/test-logs/backend-mvn-test.log
+
+Web:
+- Command: cd web && CI=true npm test -- --coverage --watchAll=false
+- Result: PASS (utility tests)
+- Log: docs/test-logs/web-npm-test-coverage.log
+- Coverage: web/coverage/lcov-report/index.html
+- Coverage data: web/coverage/lcov.info
+
+Mobile:
+- Command: cd mobile && ./gradlew testDebugUnitTest
+- Result: BUILD SUCCESS (1 unit test)
+- Log: docs/test-logs/mobile-gradle-testDebugUnitTest.log
+
+Evidence location:
+- docs/test-logs/
+- web/coverage/
+
+Screenshots:
+- docs/test-logs/web-coverage-report.png
+- docs/test-logs/web-test-log.png
+- docs/test-logs/backend-test-log.png
+- docs/test-logs/mobile-test-log.png
+
+6. Regression Test Results
+Legend: PASS / FAIL / NOT RUN
+
+Authentication
+- Register (email/password): NOT RUN (manual env/credentials required)
+- Login (email/password): NOT RUN (manual env/credentials required)
+- Google OAuth login: NOT RUN (manual env/credentials required)
+- Forgot password: NOT RUN (manual env/credentials required)
+- Reset password: NOT RUN (manual env/credentials required)
+
+RBAC
+- USER blocked from admin endpoints: NOT RUN (manual env/credentials required)
+- ADMIN can access admin endpoints: NOT RUN (manual env/credentials required)
+- Admin self-delete blocked: NOT RUN (manual env/credentials required)
+
+Expenses
+- Create expense: NOT RUN (manual env/credentials required)
+- Update expense: NOT RUN (manual env/credentials required)
+- Delete expense: NOT RUN (manual env/credentials required)
+- Link expense to budget: NOT RUN (manual env/credentials required)
+
+Budgets
+- Create budget: NOT RUN (manual env/credentials required)
+- Update budget: NOT RUN (manual env/credentials required)
+- Delete budget: NOT RUN (manual env/credentials required)
+- Cascade delete linked expenses: NOT RUN (manual env/credentials required)
+- Recency indicator for duplicate categories: NOT RUN (manual env/credentials required)
+- Budget detail popup without numeric ID: NOT RUN (manual env/credentials required)
+
+Email Notifications
+- Welcome email: NOT RUN (manual env/credentials required)
+- Reset email: NOT RUN (manual env/credentials required)
+
+Profile
+- Update name: NOT RUN (manual env/credentials required)
+- Change password: NOT RUN (manual env/credentials required)
+- Upload profile image: NOT RUN (manual env/credentials required)
+- Download profile image: NOT RUN (manual env/credentials required)
+
+Realtime Dashboard
+- Web dashboard auto-refresh: NOT RUN (manual env/credentials required)
+- Android dashboard auto-refresh: NOT RUN (manual env/credentials required)
+- Month/Year toggles: NOT RUN (manual env/credentials required)
+
+7. Issues Found
+- Automated coverage is limited to utility tests; UI and API flows remain untested by automation.
+- Manual regression pending due to missing runtime env/credentials (DB, OAuth, SMTP).
+
+8. Fixes Applied
+- None in this test run.
+
+9. Notes / Follow-ups
+- Expand automated tests for UI and API flows to improve coverage.
+- Execute manual regression flows once env variables and test credentials are available.
+- Capture screenshots for manual test evidence and attach to docs/test-logs.
+
+10. Sign-off
+Prepared by: GitHub Copilot

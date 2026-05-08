@@ -66,7 +66,6 @@ Integrated modules include:
 - `expenseApi.js`
 - `budgetApi.js`
 - `userApi.js` (admin)
-- `exchangeRateApi.js`
 
 ### Correct Data Save/Retrieve Flow
 - Create/update actions submit JSON payloads to backend endpoints
@@ -134,10 +133,6 @@ Admin/User Management:
 - `GET /api/v1/users`
 - `GET /api/v1/users/{id}`
 - `DELETE /api/v1/users/{id}`
-
-Currency/Utility:
-- `GET /api/v1/exchange-rates`
-- `GET /api/v1/exchange-rates/convert`
 
 ### Database Tables/Entities Involved
 Core tables/entities:

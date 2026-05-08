@@ -34,7 +34,6 @@ Native Android implementation of BudgetMate using Kotlin, XML layouts/fragments,
   - List budgets
   - Delete budget
 - Currency display:
-  - Backend-powered exchange rates
   - Select display currency in app bar
 - Admin:
   - List users
@@ -49,7 +48,6 @@ The app calls the same backend route groups used by the web frontend:
 - /api/v1/auth/*
 - /api/v1/budgets/*
 - /api/v1/expenses/*
-- /api/v1/exchange-rates/*
 - /api/v1/users/*
 
 Default local development endpoints are selected automatically at runtime:

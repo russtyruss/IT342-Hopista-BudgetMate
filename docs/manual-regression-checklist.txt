@@ -1,0 +1,72 @@
+Manual Regression Checklist (Web + Android)
+Project: BudgetMate
+Date: 2026-05-03
+Branch: refactor/vertical-slice
+
+Notes:
+- Capture screenshots for each completed test (web and Android where applicable).
+- Record PASS/FAIL and any notes (errors, logs, missing UI, etc.).
+
+1) Authentication
+- Register (email/password) on web
+- Login (email/password) on web
+- Google OAuth login on web
+- Forgot password on web (request reset email)
+- Reset password on web (use reset link)
+- Login on Android (email/password)
+- Google OAuth login on Android
+
+2) RBAC (Admin)
+- USER blocked from admin routes (web)
+- ADMIN can access admin dashboard (web)
+- ADMIN can list users (web)
+- ADMIN can delete non-admin user (web)
+- ADMIN cannot delete self (web)
+
+3) Expenses
+- Create expense without budget (web)
+- Create expense linked to budget (web)
+- Update expense (web)
+- Delete expense (web)
+- List expenses (web)
+- Create/update/delete expense on Android
+
+4) Budgets
+- Create budget (web)
+- Update budget (web)
+- Delete budget (web)
+- Budget spent/remaining values update with expenses (web)
+- Cascade delete linked expenses when budget deleted (web)
+- Duplicate category recency indicator (web)
+- Budget detail popup hides numeric ID (web)
+- Linked expenses display list in budget detail (Android)
+- Create/update/delete budget on Android
+
+5) Email Notifications
+- Welcome email after registration
+- Reset email after forgot-password
+
+6) Profile
+- Fetch profile data (web)
+- Update name (web)
+- Change password (web)
+- Upload profile image (web)
+- Download profile image (web)
+- Profile view/update on Android
+- Upload/download profile image on Android
+
+7) Realtime Dashboard
+- Web dashboard auto-refresh after expense/budget changes
+- Android dashboard auto-refresh after expense/budget changes
+- Month/Year toggle for Total Budget (web)
+- Month/Year toggle for Total Spent (web)
+- Month/Year toggle for Total Budget (Android)
+- Month/Year toggle for Total Spent (Android)
+
+8) Basic API/Navigation Smoke
+- Web navigation to Dashboard, Expenses, Budgets, Profile
+- Android navigation to Dashboard, Expenses, Budgets, Profile
+
+Attachments to capture in docs/test-logs/
+- Web screenshots for each section (auth, budgets, expenses, profile, admin, dashboard)
+- Android screenshots for key flows and dashboards

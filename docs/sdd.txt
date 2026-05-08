@@ -6,14 +6,14 @@ The system consists of:
 • A web application built with React
 • A native mobile application for Android (Kotlin with XML-based UI)
 • A relational database using PostgreSQL via Supabase
-The clients communicate securely with the backend via REST APIs. The system implements JWT authentication, Google OAuth login, SMTP-based email flows, exchange-rate API integration, profile image upload, and realtime dashboard auto-updates (WebSocket/STOMP support on backend, web, and Android clients).
+The clients communicate securely with the backend via REST APIs. The system implements JWT authentication, Google OAuth login, SMTP-based email flows, currency display selection, profile image upload, and realtime dashboard auto-updates (WebSocket/STOMP support on backend, web, and Android clients).
 
 1.2 Objectives
 1. Develop a secure expense and budget tracking platform for web and Android users.
 2. Implement JWT-based authentication and Google OAuth login.
 3. Apply Role-Based Access Control (Admin and User roles).
 4. Implement full CRUD operations for expense and budget management.
-5. Integrate a real external API for exchange-rate retrieval and currency display support.
+5. Provide currency display selection for amounts.
 6. Send operational emails using SMTP (welcome + password reset).
 7. Follow a layered backend architecture with proper separation of concerns.
 
@@ -25,7 +25,7 @@ Included Features:
 • Role-based access control
 • Expense management (CRUD)
 • Budget management (CRUD)
-• External API integration (exchange rates)
+• Currency display selection
 • Email notifications (welcome + password reset)
 • Profile management (name/password/image)
 • Realtime dashboard updates (backend publish + web/mobile subscribe)
@@ -99,7 +99,7 @@ MUST HAVE
 4. Role-Based Access Control
 5. Expense CRUD operations
 6. Budget CRUD operations
-7. External API integration (exchange rates)
+7. Currency display selection
 8. SMTP email sending
 9. Layered backend architecture
 
@@ -159,14 +159,10 @@ Feature: Budget Management
   o PUT /api/v1/budgets/{id}
   o DELETE /api/v1/budgets/{id}
 
-Feature: External API Integration (Currency Exchange)
+Feature: Currency Display
 • Screens: Dashboard currency display
-• Data Displayed: selected currency indicator and exchange-rate data
-• Purpose: support currency indicator display using available exchange-rate data
-• Integration: ExchangeRate-API consumption with fallback behavior
-• API Endpoints:
-  o GET /api/v1/exchange-rates
-• Requirement: exchange-rate data retrieval must fail safely when external API is unavailable (fallback response)
+• Data Displayed: selected currency indicator
+• Purpose: support display-only currency context for amounts
 
 Feature: Email Sending (SMTP Notifications)
 • Trigger Events: user registration, forgot-password workflow
@@ -260,11 +256,10 @@ Then the budget is removed from the database
 And all expenses linked to that budget are also deleted
 And dashboard data is refreshed to reflect the deletion
 
-AC-11: External API Integration (Exchange Rates)
+AC-11: Currency Display
 Given I view currency data
-When the system fetches exchange rates
-Then exchange data is returned
-And selected currency display remains available for users
+When I change the display currency
+Then the selected currency indicator updates for amounts
 
 AC-12: Email Notification
 Given I register or request password reset
@@ -275,7 +270,6 @@ Then an email is sent through SMTP workflow
 3.1 Performance Requirements
 • API response time target: <= 2 seconds for common operations under normal load
 • Authentication flow should remain responsive for login/register
-• Exchange rate retrieval should fail fast and return fallback when external service is unavailable
 • Dashboard refresh operations should complete promptly for user interaction
 • Database queries should be optimized through repository paging and targeted filtering
 
@@ -291,7 +285,6 @@ Then an email is sent through SMTP workflow
 
 3.3 Reliability and Availability Requirements
 • Global exception handling provides consistent error responses
-• External exchange API failure does not crash core app functionality
 • WebSocket failures should not block core expense/budget workflows
 • Email sending failures should not corrupt primary transaction data
 
@@ -374,11 +367,6 @@ Budget Management Endpoints
 | Get budget by ID | /api/v1/budgets/{id} | GET | JSON | Yes (Bearer JWT) | N/A | {"id":1,"category":"Food","limitAmount":5000.00,"spentAmount":500.00,"remainingAmount":4500.00,"currency":"PHP","startDate":"2026-04-01","endDate":"2026-04-30","notes":"Monthly food budget","userId":1,"createdAt":"2026-04-14T10:15:30","updatedAt":"2026-04-14T10:20:00"} |
 | Update budget by ID | /api/v1/budgets/{id} | PUT | JSON | Yes (Bearer JWT) | {"category":"Food","limitAmount":6000.00,"currency":"PHP","startDate":"2026-04-01","endDate":"2026-04-30","notes":"Updated monthly food budget"} | {"id":1,"category":"Food","limitAmount":6000.00,"spentAmount":500.00,"remainingAmount":5500.00,"currency":"PHP","startDate":"2026-04-01","endDate":"2026-04-30","notes":"Updated monthly food budget","userId":1,"createdAt":"2026-04-14T10:15:30","updatedAt":"2026-04-14T10:25:00"} |
 | Delete budget by ID | /api/v1/budgets/{id} | DELETE | JSON | Yes (Bearer JWT) | N/A | 204 No Content (no JSON response body) |
-
-External API Integration
-| Description | API URL | HTTP Request Method | Format | Authentication | Request Payload | Response Structure |
-|---|---|---|---|---|---|---|
-| Retrieve exchange rates for currency display selection (backend fetches from external provider with fallback behavior) | /api/v1/exchange-rates | GET | JSON | Yes (Bearer JWT) | N/A | {"result":"success","base_code":"PHP","conversion_rates":{"PHP":1.0,"USD":0.017}} |
 
 Admin Endpoints
 | Description | API URL | HTTP Request Method | Format | Authentication | Request Payload | Response Structure |
@@ -509,7 +497,7 @@ Phase 2: Backend Development (Completed Core)
 Week 3-4:
 • Spring Boot setup with security and layered architecture
 • JWT auth, OAuth integration, user/expense/budget modules
-• Exchange API integration and SMTP email flows
+• Currency display selection and SMTP email flows
 
 Phase 3: Client Development (Completed Core)
 Week 5-6:
