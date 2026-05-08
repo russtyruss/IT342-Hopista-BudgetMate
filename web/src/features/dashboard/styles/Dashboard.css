@@ -1,0 +1,114 @@
+.dashboard {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.dashboard h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-card-button {
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.stat-card-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+}
+
+.stat-card-button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.stat-label { font-size: 12px; text-transform: uppercase; color: #9ca3af; letter-spacing: .5px; font-weight: 600; }
+.stat-value { font-size: 26px; font-weight: 700; color: #1a1a2e; }
+.stat-value.expense { color: #ef4444; }
+
+.dashboard-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-sections { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .dashboard { padding: 24px 14px; }
+  .stat-value { font-size: 22px; }
+}
+
+.section {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.section h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #374151; }
+
+.period-modal {
+  max-width: 360px;
+}
+
+.period-modal h2 {
+  margin-bottom: 14px;
+}
+
+.period-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.period-option {
+  border: 1px solid #d7dee8;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #243042;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+}
+
+.period-option:hover {
+  transform: translateY(-1px);
+  border-color: #b9c7d8;
+}
+
+.period-option.active {
+  border-color: #8eb5da;
+  background: #eef6ff;
+  color: #1e4c7a;
+}
+
+.budget-bar-item { margin-bottom: 14px; }
+.budget-bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; color: #374151; }

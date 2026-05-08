@@ -18,7 +18,6 @@ GOOGLE_CLIENT_ID='<google-client-id>'
 GOOGLE_CLIENT_SECRET='<google-client-secret>'
 MAIL_USERNAME='<smtp-username>'
 MAIL_PASSWORD='<smtp-password>'
-EXCHANGE_RATE_API_KEY='<exchange-rate-api-key>'
 SUPABASE_SERVICE_ROLE_KEY='<supabase-service-role-key>'
 
 Optional: persist env vars in your shell profile (~/.zshrc)
@@ -31,7 +30,6 @@ export GOOGLE_CLIENT_ID='<google-client-id>'
 export GOOGLE_CLIENT_SECRET='<google-client-secret>'
 export MAIL_USERNAME='<smtp-username>'
 export MAIL_PASSWORD='<smtp-password>'
-export EXCHANGE_RATE_API_KEY='<exchange-rate-api-key>'
 export SUPABASE_SERVICE_ROLE_KEY='<supabase-service-role-key>'
 
 run mobile avd: emulator -avd Pixel_4

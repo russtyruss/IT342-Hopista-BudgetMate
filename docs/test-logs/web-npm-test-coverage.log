@@ -1,0 +1,45 @@
+
+> web@0.1.0 test
+> react-scripts test --coverage --watchAll=false
+
+------------------------------|---------|----------|---------|---------|-------------------
+File                          | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+------------------------------|---------|----------|---------|---------|-------------------
+All files                     |    4.47 |     1.82 |    3.89 |    4.66 |                   
+ src                          |       0 |      100 |       0 |       0 |                   
+  App.js                      |       0 |      100 |       0 |       0 | 22                
+  index.js                    |       0 |      100 |     100 |       0 | 6-7               
+ src/features/admin/pages     |       0 |        0 |       0 |       0 |                   
+  AdminDashboardPage.js       |       0 |        0 |       0 |       0 | 7-128             
+ src/features/auth/pages      |       0 |        0 |       0 |       0 |                   
+  ForgotPasswordPage.js       |       0 |        0 |       0 |       0 | 6-56              
+  LoginPage.js                |       0 |        0 |       0 |       0 | 6-55              
+  OAuth2RedirectPage.js       |       0 |        0 |       0 |       0 | 6-69              
+  RegisterPage.js             |       0 |        0 |       0 |       0 | 6-48              
+  ResetPasswordPage.js        |       0 |        0 |       0 |       0 | 6-61              
+ src/features/budget/api      |       0 |      100 |       0 |       0 |                   
+  budgetApi.js                |       0 |      100 |       0 |       0 | 3-16              
+ src/features/budget/pages    |       0 |        0 |       0 |       0 |                   
+  BudgetsPage.js              |       0 |        0 |       0 |       0 | 9-383             
+ src/features/dashboard/pages |       0 |        0 |       0 |       0 |                   
+  DashboardPage.js            |       0 |        0 |       0 |       0 | 12-309            
+ src/features/expense/api     |       0 |      100 |       0 |       0 |                   
+  expenseApi.js               |       0 |      100 |       0 |       0 | 3-16              
+ src/features/expense/pages   |       0 |        0 |       0 |       0 |                   
+  ExpensesPage.js             |       0 |        0 |       0 |       0 | 9-422             
+ src/features/profile/pages   |       0 |        0 |       0 |       0 |                   
+  ProfilePage.js              |       0 |        0 |       0 |       0 | 12-305            
+ src/shared/api               |       0 |        0 |       0 |       0 |                   
+  authApi.js                  |       0 |      100 |       0 |       0 | 3-19              
+  axiosInstance.js            |       0 |        0 |       0 |       0 | 4-47              
+  userApi.js                  |       0 |        0 |       0 |       0 | 3-27              
+ src/shared/components        |       0 |        0 |       0 |       0 |                   
+  Navbar.js                   |       0 |        0 |       0 |       0 | 7-41              
+  ProtectedRoute.js           |       0 |        0 |       0 |       0 | 5-18              
+ src/shared/context           |       0 |        0 |       0 |       0 |                   
+  AuthContext.js              |       0 |        0 |       0 |       0 | 5-152             
+  CurrencyContext.js          |       0 |        0 |       0 |       0 | 5-102             
+ src/shared/utils             |   92.45 |    76.47 |    90.9 |      96 |                   
+  pageDataCache.js            |   92.85 |       60 |     100 |   92.85 | 15                
+  secureTokenStorage.js       |    92.3 |    83.33 |    87.5 |   97.22 | 50                
+------------------------------|---------|----------|---------|---------|-------------------

@@ -1,0 +1,229 @@
+Software Test Plan
+Project: BudgetMate
+Date: 2026-05-03
+Version: 1.0
+
+1. Purpose
+This plan defines the functional test coverage, test cases, test steps, and automated tests for BudgetMate after the vertical-slice refactor. It covers backend, web, and Android app flows based on the system requirements in docs/srs.txt and docs/sdd.txt.
+
+2. Scope
+In scope:
+- Authentication (local + Google OAuth)
+- RBAC (USER vs ADMIN)
+- Expense CRUD
+- Budget CRUD + cascade delete + recency indicators
+- Email notifications (welcome + password reset)
+- Profile management (name, password, profile image)
+- Realtime dashboard updates (web + Android)
+- Dashboard summary period toggles
+
+Out of scope:
+- iOS client
+- Payments
+- AI forecasting
+- PDF export
+
+3. Test Environment
+Backend:
+- Java 17, Spring Boot
+- PostgreSQL (Supabase) or local DB
+- Maven
+
+Web:
+- React app (Node.js + npm)
+- Chrome/Edge
+
+Mobile:
+- Android app (API 24+), emulator or device
+
+4. Functional Requirements Coverage
+Legend: FR-Auth, FR-RBAC, FR-Exp, FR-Bud, FR-Email, FR-Profile, FR-RT
+
+FR-Auth-01 Register (email/password)
+FR-Auth-02 Login (email/password)
+FR-Auth-03 Google OAuth login
+FR-Auth-04 JWT issue and use on protected endpoints
+FR-Auth-05 Forgot-password flow
+FR-Auth-06 Reset-password flow
+
+FR-RBAC-01 USER vs ADMIN roles
+FR-RBAC-02 Admin-only endpoints protected
+FR-RBAC-03 Admin self-delete blocked
+
+FR-Exp-01 Create expense
+FR-Exp-02 List expenses
+FR-Exp-03 Get expense by id
+FR-Exp-04 Update expense
+FR-Exp-05 Delete expense
+FR-Exp-06 Expense link to budget (optional)
+
+FR-Bud-01 Create budget
+FR-Bud-02 List budgets
+FR-Bud-03 Get budget by id
+FR-Bud-04 Update budget
+FR-Bud-05 Delete budget
+FR-Bud-06 Budget spent/remaining computation
+FR-Bud-07 Cascading delete of linked expenses
+FR-Bud-08 Recency indicator for duplicate categories
+FR-Bud-09 Budget detail popup without numeric ID
+FR-Bud-10 Linked expenses list in budget detail
+
+FR-Email-01 Welcome email on registration
+FR-Email-02 Reset email on forgot-password
+
+FR-Profile-01 Get profile
+FR-Profile-02 Update name
+FR-Profile-03 Change password
+FR-Profile-04 Upload profile image (type/size validation)
+FR-Profile-05 Download profile image
+
+FR-RT-01 Backend publishes realtime updates for budgets/expenses
+FR-RT-02 Web subscribes and auto-refreshes dashboard
+FR-RT-03 Android subscribes and auto-refreshes dashboard
+FR-RT-04 Dashboard total cards toggle Month/Year independently
+
+5. Test Cases
+TC-Auth-01 Register local user
+- Pre: user email not used
+- Expected: account created, JWT returned, welcome email sent
+
+TC-Auth-02 Login local user
+- Pre: account exists
+- Expected: JWT returned, /auth/me returns profile
+
+TC-Auth-03 OAuth login (web)
+- Expected: Google auth redirects back with token; dashboard loads
+
+TC-Auth-04 OAuth login (Android)
+- Expected: deep link receives token; user session established
+
+TC-Auth-05 Forgot password
+- Expected: request returns 200 with generic message; email sent
+
+TC-Auth-06 Reset password
+- Expected: password updated; login works with new password
+
+TC-RBAC-01 USER blocked on admin endpoints
+- Expected: 403/redirect
+
+TC-RBAC-02 ADMIN can list/delete users
+- Expected: users list visible; delete non-admin success; admin self-delete blocked
+
+TC-Exp-01 Create expense (no budget)
+- Expected: expense created and listed
+
+TC-Exp-02 Create expense (with budget)
+- Expected: expense linked; budget spent updated
+
+TC-Exp-03 Update expense
+- Expected: values updated; linked budget spent recalculated
+
+TC-Exp-04 Delete expense
+- Expected: expense removed; budget spent recalculated
+
+TC-Bud-01 Create budget
+- Expected: budget created; remaining = limit - spent
+
+TC-Bud-02 Update budget
+- Expected: fields updated; spent consistent
+
+TC-Bud-03 Delete budget (cascade)
+- Expected: budget removed; linked expenses removed
+
+TC-Bud-04 Duplicate category indicator
+- Expected: categories show 1,2,3 by recency
+
+TC-Bud-05 Budget detail popup without numeric ID
+- Expected: UI shows category and data only, no numeric ID
+
+TC-Email-01 Welcome email
+- Expected: email delivered after registration
+
+TC-Email-02 Reset email
+- Expected: email delivered after forgot-password
+
+TC-Profile-01 Update name
+- Expected: name updated and persisted
+
+TC-Profile-02 Change password
+- Expected: old password invalid; new password works
+
+TC-Profile-03 Upload profile image
+- Expected: valid image accepted; invalid type/size rejected
+
+TC-Profile-04 Download profile image
+- Expected: image returned with correct content type
+
+TC-RT-01 Web realtime dashboard refresh
+- Expected: budget/expense updates trigger refresh
+
+TC-RT-02 Android realtime dashboard refresh
+- Expected: websocket update triggers refresh
+
+TC-RT-03 Month/Year toggle (Budget)
+- Expected: budget total changes based on period
+
+TC-RT-04 Month/Year toggle (Spent)
+- Expected: spent total changes based on period
+
+6. Test Scripts / Steps (Representative)
+TS-Auth-01 Register and login
+1) Open web /register
+2) Register with valid fields
+3) Verify success message and login redirect
+4) Login with same credentials
+5) Verify dashboard loads
+
+TS-Exp-01 Create expense linked to budget
+1) Create a new budget
+2) Create expense and link to budget
+3) Verify expense appears
+4) Verify budget spent increases
+
+TS-Bud-01 Delete budget cascades expenses
+1) Create budget and linked expense
+2) Delete budget
+3) Verify budget removed and expense removed
+
+TS-Profile-01 Upload image
+1) Go to profile
+2) Upload image file (jpg/png/webp/gif)
+3) Verify preview/download works
+
+TS-RT-01 Realtime refresh (web)
+1) Open dashboard in web
+2) Create expense in another tab
+3) Verify dashboard auto-refreshes
+
+7. Automated Test Cases
+Existing automation:
+- Backend: mvn test
+  Command: cd backend && ./mvnw test
+  Coverage: compilation + any backend unit tests present
+
+Planned automation (major modules):
+- Backend integration tests for auth, budgets, expenses, and profile endpoints
+- Web UI smoke tests for login, budgets, expenses, profile
+- Android instrumentation tests for login, budgets, expenses, profile
+
+8. Test Data
+- Users:
+  - user1@example.com (USER)
+  - admin (ADMIN)
+- Budgets:
+  - Food 5000 PHP
+  - Transport 2000 PHP
+- Expenses:
+  - Groceries 500 PHP (linked)
+  - Ride 150 PHP (unlinked)
+
+9. Entry/Exit Criteria
+Entry:
+- Refactor completed
+- Backend, web, and mobile build successfully
+- Database accessible
+
+Exit:
+- All FR test cases executed
+- No unresolved critical defects
+- Regression report completed

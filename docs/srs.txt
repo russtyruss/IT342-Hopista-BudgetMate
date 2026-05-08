@@ -20,7 +20,7 @@ The system supports:
 - Cascading delete rule: deleting a budget also deletes linked expenses
 - Budget detail popup display that avoids internal numeric budget identifiers
 - Profile management (name, password, profile image)
-- Currency context display with exchange-rate retrieval support
+- Currency context display with selected currency indicator
 - SMTP email flows (welcome and password reset)
 - Realtime dashboard auto-updates (backend publish, web/mobile subscribe)
 - Layered backend architecture with Controller -> Service -> Repository separation
@@ -53,7 +53,7 @@ BudgetMate is a multi-client client-server system in which:
 - Web and Android clients consume a shared Spring Boot backend API
 - Backend handles authentication, authorization, validation, and business rules
 - Data is persisted in PostgreSQL (Supabase-hosted)
-- External services are integrated for Google OAuth, exchange-rate data, and SMTP emails
+- External services are integrated for Google OAuth and SMTP emails
 - WebSocket/STOMP is used for dashboard auto-update events
 
 Architecturally, the backend follows layered separation:
@@ -89,7 +89,6 @@ Mobile:
 Data/External Services:
 - PostgreSQL via Supabase
 - Google OAuth2 provider
-- Exchange-rate API provider
 - SMTP provider for outbound emails
 
 2.4. Assumptions and Dependencies  
@@ -102,7 +101,6 @@ Assumptions:
 Dependencies:
 - Supabase availability and PostgreSQL connectivity
 - Google OAuth credentials and redirect/deep-link configuration
-- Exchange-rate API availability (with fallback behavior when unavailable)
 - SMTP service availability for email delivery
 - Third-party libraries used in Spring Boot, React, and Android stacks
 
@@ -159,14 +157,13 @@ Functional Requirements:
 - The system shall append recency-based sequence indicators (1, 2, 3, ...) to duplicate budget categories, where 1 is the most recent active budget in that category.
 - The system shall expose budget endpoints for create/list/get/update/delete.
 
-3.5. Feature 5: External API Integration (Exchange Rates)
+3.5. Feature 5: Currency Display
 Description:
-This feature retrieves exchange-rate data to support currency display context in dashboards and related views.
+This feature provides selected currency display context in dashboards and related views without conversion.
 
 Functional Requirements:
-- The system shall retrieve exchange-rate data through the exchange-rate integration endpoint.
-- The system shall provide selected currency display context to clients.
-- The system shall return fallback behavior when the external exchange provider is unavailable.
+- The system shall allow users to select a display currency.
+- The system shall display the selected currency indicator alongside amounts.
 
 3.6. Feature 6: Email Sending (SMTP Notifications)
 Description:
@@ -204,7 +201,6 @@ Specify system quality attributes such as performance, security, usability, reli
 4.1. Performance Requirements
 - API response time target: <= 2 seconds for common operations under normal load.
 - Authentication flow should remain responsive for login/register.
-- Exchange-rate retrieval should fail fast and return fallback when external service is unavailable.
 - Dashboard refresh operations should complete promptly for user interaction.
 - Database queries should be optimized through repository paging and targeted filtering.
 
@@ -220,7 +216,6 @@ Specify system quality attributes such as performance, security, usability, reli
 
 4.3. Reliability and Availability Requirements
 - Global exception handling shall provide consistent error responses.
-- External exchange API failure shall not crash core app functionality.
 - WebSocket failures shall not block core expense/budget workflows.
 - Email sending failures shall not corrupt primary transaction data.
 
@@ -268,7 +263,6 @@ This section summarizes interface-level alignment with the Software Design Docum
 - Expenses: create, list, get by id, update, delete
 - Budgets: create, list, get by id, update, delete (including linked-expense cascade behavior)
 - Users/Profile: profile read/update, password change, profile image upload/download, admin user management
-- Exchange rates: retrieval endpoint for currency context support
 
 5.3. Error and Validation Behavior
 - Standard HTTP codes are used for success, client errors, auth errors, and server errors.
@@ -281,7 +275,7 @@ Include any additional information, references, or support materials.
 
 6.1. API Reference Summary
 - Base path: /api/v1
-- Main modules: Auth, Users/Profile, Expenses, Budgets, Exchange Rates
+- Main modules: Auth, Users/Profile, Expenses, Budgets
 
 6.2. Data and Infrastructure
 - Database: PostgreSQL via Supabase
@@ -291,7 +285,6 @@ Include any additional information, references, or support materials.
 
 6.3. External Integrations
 - Google OAuth2 for social login
-- Exchange-rate provider for currency data
 - SMTP provider for welcome/reset email flows
 
 6.4. Supporting Artifacts

@@ -148,3 +148,21 @@ body {
 .budget-bar-fill { height: 100%; background: #4f46e5; border-radius: 999px; transition: width 0.4s; }
 .budget-bar-fill.warning { background: #f59e0b; }
 .budget-bar-fill.danger { background: #ef4444; }
+
+@media (max-width: 900px) {
+  .page { padding: 24px 18px; }
+}
+
+@media (max-width: 720px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .page-header .btn-primary { width: 100%; }
+  .form-row { grid-template-columns: 1fr; }
+  .modal { padding: 22px; }
+}
+
+@media (max-width: 600px) {
+  .page { padding: 20px 14px; }
+  .data-table { display: block; overflow-x: auto; }
+  .data-table th,
+  .data-table td { white-space: nowrap; }
+}
