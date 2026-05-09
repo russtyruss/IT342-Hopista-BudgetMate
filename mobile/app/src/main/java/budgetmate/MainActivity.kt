@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private var currencyAdapter: ArrayAdapter<String>? = null
     private var lastSupportedCurrencies: List<String> = emptyList()
     private var lastUserId: Long? = null
+    private var lastRegisterSuccessMessage: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -160,7 +162,6 @@ class MainActivity : AppCompatActivity() {
                     val authContainer = findViewById<android.view.View>(R.id.authContainer)
                     val appContainer = findViewById<android.view.View>(R.id.appContainer)
                     val tvAuthMessage = findViewById<android.widget.TextView>(R.id.tvAuthMessage)
-                    val tvRegisterMessage = findViewById<android.widget.TextView>(R.id.tvRegisterMessage)
                     val spinnerCurrency = findViewById<Spinner>(R.id.spinnerCurrency)
 
                     authContainer.isVisible = state.user == null
@@ -180,19 +181,18 @@ class MainActivity : AppCompatActivity() {
                     }
                     tvAuthMessage.setTextColor(authMessageColor)
 
-                    val registerMessage = if (state.authMode == AuthMode.REGISTER) {
-                        state.successMessage?.ifBlank { null } ?: state.errorMessage.orEmpty()
+                    val registerSuccess = if (state.authMode == AuthMode.REGISTER) {
+                        state.successMessage?.trim().orEmpty()
                     } else {
                         ""
                     }
-                    tvRegisterMessage.isVisible = registerMessage.isNotBlank()
-                    tvRegisterMessage.text = registerMessage
-                    val registerMessageColor = if (state.successMessage.isNullOrBlank()) {
-                        androidx.core.content.ContextCompat.getColor(this@MainActivity, R.color.bm_error)
-                    } else {
-                        androidx.core.content.ContextCompat.getColor(this@MainActivity, R.color.bm_secondary)
+                    if (registerSuccess.isNotBlank() && registerSuccess != lastRegisterSuccessMessage) {
+                        lastRegisterSuccessMessage = registerSuccess
+                        Toast.makeText(this@MainActivity, registerSuccess, Toast.LENGTH_SHORT).show()
                     }
-                    tvRegisterMessage.setTextColor(registerMessageColor)
+                    if (state.authMode != AuthMode.REGISTER) {
+                        lastRegisterSuccessMessage = null
+                    }
 
                     if (loginPrompt.isNotBlank()) {
                         clearRegisterFields()
