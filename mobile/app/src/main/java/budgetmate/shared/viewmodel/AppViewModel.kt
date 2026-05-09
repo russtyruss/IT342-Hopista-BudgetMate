@@ -152,7 +152,7 @@ class AppViewModel(
             clearMessages()
             repository.register(name, email, password)
                 .onSuccess {
-                    setSuccess("Account created successfully! Redirecting to login...")
+                    setSuccess("Registration successful redirecting to login screen")
                     delay(1_500)
                     sessionManager.clearToken()
                     _uiState.value = _uiState.value.copy(

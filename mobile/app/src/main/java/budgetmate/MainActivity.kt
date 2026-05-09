@@ -160,6 +160,7 @@ class MainActivity : AppCompatActivity() {
                     val authContainer = findViewById<android.view.View>(R.id.authContainer)
                     val appContainer = findViewById<android.view.View>(R.id.appContainer)
                     val tvAuthMessage = findViewById<android.widget.TextView>(R.id.tvAuthMessage)
+                    val tvRegisterMessage = findViewById<android.widget.TextView>(R.id.tvRegisterMessage)
                     val spinnerCurrency = findViewById<Spinner>(R.id.spinnerCurrency)
 
                     authContainer.isVisible = state.user == null
@@ -178,6 +179,20 @@ class MainActivity : AppCompatActivity() {
                         androidx.core.content.ContextCompat.getColor(this@MainActivity, R.color.bm_error)
                     }
                     tvAuthMessage.setTextColor(authMessageColor)
+
+                    val registerMessage = if (state.authMode == AuthMode.REGISTER) {
+                        state.successMessage?.ifBlank { null } ?: state.errorMessage.orEmpty()
+                    } else {
+                        ""
+                    }
+                    tvRegisterMessage.isVisible = registerMessage.isNotBlank()
+                    tvRegisterMessage.text = registerMessage
+                    val registerMessageColor = if (state.successMessage.isNullOrBlank()) {
+                        androidx.core.content.ContextCompat.getColor(this@MainActivity, R.color.bm_error)
+                    } else {
+                        androidx.core.content.ContextCompat.getColor(this@MainActivity, R.color.bm_secondary)
+                    }
+                    tvRegisterMessage.setTextColor(registerMessageColor)
 
                     if (loginPrompt.isNotBlank()) {
                         clearRegisterFields()
