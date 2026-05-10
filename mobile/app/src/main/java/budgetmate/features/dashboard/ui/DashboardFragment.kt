@@ -1,4 +1,4 @@
-package budgetmate.features.dashboard.ui
+package edu.cit.hopista.budgetmate.features.dashboard.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,12 +15,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import budgetmate.MainActivity
-import budgetmate.R
-import budgetmate.shared.data.model.BudgetResponse
-import budgetmate.shared.data.model.ExpenseResponse
-import budgetmate.shared.ui.CurrencyUi
-import budgetmate.shared.viewmodel.AppUiState
+import edu.cit.hopista.budgetmate.MainActivity
+import edu.cit.hopista.budgetmate.R
+import edu.cit.hopista.budgetmate.shared.data.model.BudgetResponse
+import edu.cit.hopista.budgetmate.shared.data.model.ExpenseResponse
+import edu.cit.hopista.budgetmate.shared.ui.CurrencyUi
+import edu.cit.hopista.budgetmate.shared.viewmodel.AppUiState
 import kotlinx.coroutines.launch
 import java.util.Calendar
 

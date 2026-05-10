@@ -1,4 +1,4 @@
-package budgetmate.shared.data.model
+package edu.cit.hopista.budgetmate.shared.data.model
 
 import com.google.gson.annotations.SerializedName
 

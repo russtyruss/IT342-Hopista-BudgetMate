@@ -1,4 +1,4 @@
-package budgetmate.features.expense.ui
+package edu.cit.hopista.budgetmate.features.expense.ui
 
 import android.app.DatePickerDialog
 import android.os.Bundle
@@ -24,13 +24,13 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import budgetmate.MainActivity
-import budgetmate.R
-import budgetmate.shared.data.model.BudgetResponse
-import budgetmate.shared.data.model.ExpenseRequest
-import budgetmate.shared.data.model.ExpenseResponse
-import budgetmate.shared.ui.CurrencyUi
-import budgetmate.shared.viewmodel.AppViewModel
+import edu.cit.hopista.budgetmate.MainActivity
+import edu.cit.hopista.budgetmate.R
+import edu.cit.hopista.budgetmate.shared.data.model.BudgetResponse
+import edu.cit.hopista.budgetmate.shared.data.model.ExpenseRequest
+import edu.cit.hopista.budgetmate.shared.data.model.ExpenseResponse
+import edu.cit.hopista.budgetmate.shared.ui.CurrencyUi
+import edu.cit.hopista.budgetmate.shared.viewmodel.AppViewModel
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch

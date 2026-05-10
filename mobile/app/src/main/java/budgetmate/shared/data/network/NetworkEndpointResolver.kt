@@ -1,7 +1,7 @@
-package budgetmate.shared.data.network
+package edu.cit.hopista.budgetmate.shared.data.network
 
 import android.os.Build
-import budgetmate.BuildConfig
+import edu.cit.hopista.budgetmate.BuildConfig
 
 object NetworkEndpointResolver {
 

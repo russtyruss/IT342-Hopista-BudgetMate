@@ -1,4 +1,4 @@
-package budgetmate.shared.data.session
+package edu.cit.hopista.budgetmate.shared.data.session
 
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences

@@ -6,11 +6,11 @@ plugins {
 val deviceHost = (project.findProperty("DEVICE_HOST") as String?) ?: "127.0.0.1"
 
 android {
-    namespace = "budgetmate"
+    namespace = "edu.cit.hopista.budgetmate"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "edu.cit.delacruz.budgetmate"
+        applicationId = "edu.cit.hopista.budgetmate"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
