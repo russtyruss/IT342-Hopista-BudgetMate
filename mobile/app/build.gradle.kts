@@ -3,7 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-val deviceHost = (project.findProperty("DEVICE_HOST") as String?) ?: "127.0.0.1"
+val deviceHost = (project.findProperty("DEVICE_HOST") as String?) ?: "budgetmate-backend-6dmw.onrender.com"
 
 android {
     namespace = "edu.cit.hopista.budgetmate"
@@ -15,12 +15,12 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-        buildConfigField("String", "API_BASE_URL_EMULATOR", "\"http://10.0.2.2:8080/api/v1/\"")
-        buildConfigField("String", "WS_BASE_URL_EMULATOR", "\"ws://10.0.2.2:8080/ws-native\"")
-        buildConfigField("String", "API_BASE_URL_DEVICE", "\"http://$deviceHost:8080/api/v1/\"")
-        buildConfigField("String", "WS_BASE_URL_DEVICE", "\"ws://$deviceHost:8080/ws-native\"")
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/api/v1/\"")
-        buildConfigField("String", "WS_BASE_URL", "\"ws://10.0.2.2:8080/ws-native\"")
+        buildConfigField("String", "API_BASE_URL_EMULATOR", "\"https://$deviceHost/api/v1/\"")
+        buildConfigField("String", "WS_BASE_URL_EMULATOR", "\"wss://$deviceHost/ws-native\"")
+        buildConfigField("String", "API_BASE_URL_DEVICE", "\"https://$deviceHost/api/v1/\"")
+        buildConfigField("String", "WS_BASE_URL_DEVICE", "\"wss://$deviceHost/ws-native\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://$deviceHost/api/v1/\"")
+        buildConfigField("String", "WS_BASE_URL", "\"wss://$deviceHost/ws-native\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
