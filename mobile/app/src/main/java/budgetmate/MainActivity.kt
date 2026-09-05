@@ -1,27 +1,28 @@
-package budgetmate
+package edu.cit.hopista.budgetmate
 
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import budgetmate.shared.data.network.ApiClient
-import budgetmate.shared.data.network.NetworkEndpointResolver
-import budgetmate.shared.data.repository.BudgetMateRepository
-import budgetmate.shared.data.session.SessionManager
-import budgetmate.features.admin.ui.AdminFragment
-import budgetmate.shared.viewmodel.AuthMode
-import budgetmate.shared.viewmodel.AppViewModel
-import budgetmate.shared.viewmodel.AppViewModelFactory
-import budgetmate.features.budget.ui.BudgetsFragment
-import budgetmate.shared.ui.CurrencyUi
-import budgetmate.features.dashboard.ui.DashboardFragment
-import budgetmate.features.expense.ui.ExpensesFragment
-import budgetmate.features.profile.ui.ProfileFragment
+import edu.cit.hopista.budgetmate.shared.data.network.ApiClient
+import edu.cit.hopista.budgetmate.shared.data.network.NetworkEndpointResolver
+import edu.cit.hopista.budgetmate.shared.data.repository.BudgetMateRepository
+import edu.cit.hopista.budgetmate.shared.data.session.SessionManager
+import edu.cit.hopista.budgetmate.features.admin.ui.AdminFragment
+import edu.cit.hopista.budgetmate.shared.viewmodel.AuthMode
+import edu.cit.hopista.budgetmate.shared.viewmodel.AppViewModel
+import edu.cit.hopista.budgetmate.shared.viewmodel.AppViewModelFactory
+import edu.cit.hopista.budgetmate.features.budget.ui.BudgetsFragment
+import edu.cit.hopista.budgetmate.shared.ui.CurrencyUi
+import edu.cit.hopista.budgetmate.features.dashboard.ui.DashboardFragment
+import edu.cit.hopista.budgetmate.features.expense.ui.ExpensesFragment
+import edu.cit.hopista.budgetmate.features.profile.ui.ProfileFragment
 import kotlinx.coroutines.launch
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private var currencyAdapter: ArrayAdapter<String>? = null
     private var lastSupportedCurrencies: List<String> = emptyList()
     private var lastUserId: Long? = null
+    private var lastRegisterSuccessMessage: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -178,6 +180,19 @@ class MainActivity : AppCompatActivity() {
                         androidx.core.content.ContextCompat.getColor(this@MainActivity, R.color.bm_error)
                     }
                     tvAuthMessage.setTextColor(authMessageColor)
+
+                    val registerSuccess = if (state.authMode == AuthMode.REGISTER) {
+                        state.successMessage?.trim().orEmpty()
+                    } else {
+                        ""
+                    }
+                    if (registerSuccess.isNotBlank() && registerSuccess != lastRegisterSuccessMessage) {
+                        lastRegisterSuccessMessage = registerSuccess
+                        Toast.makeText(this@MainActivity, registerSuccess, Toast.LENGTH_SHORT).show()
+                    }
+                    if (state.authMode != AuthMode.REGISTER) {
+                        lastRegisterSuccessMessage = null
+                    }
 
                     if (loginPrompt.isNotBlank()) {
                         clearRegisterFields()

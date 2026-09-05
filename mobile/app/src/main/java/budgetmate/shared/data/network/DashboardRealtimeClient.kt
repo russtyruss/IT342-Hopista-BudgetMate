@@ -1,4 +1,4 @@
-package budgetmate.shared.data.network
+package edu.cit.hopista.budgetmate.shared.data.network
 
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers

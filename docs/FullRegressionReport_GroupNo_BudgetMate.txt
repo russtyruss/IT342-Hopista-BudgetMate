@@ -19,8 +19,8 @@ Repository: https://github.com/russtyruss/IT342-Hopista-BudgetMate.git
 
 3. Updated Project Structure (Summary)
 Backend:
-- backend/src/main/java/edu/cit/hopista/campusclinic/features/*
-- backend/src/main/java/edu/cit/hopista/campusclinic/shared/*
+- backend/src/main/java/edu/cit/hopista/budgetmate/features/*
+- backend/src/main/java/edu/cit/hopista/budgetmate/shared/*
 
 Web:
 - web/src/features/*

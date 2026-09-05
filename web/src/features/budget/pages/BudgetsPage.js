@@ -79,6 +79,18 @@ const BudgetsPage = () => {
     };
   }, [error]);
 
+  useEffect(() => {
+    if (!selectedBudget) {
+      return;
+    }
+
+    const stillExists = budgets.some((budget) => Number(budget.id) === Number(selectedBudget.id));
+    if (!stillExists) {
+      setShowLinkedExpenses(false);
+      setSelectedBudget(null);
+    }
+  }, [budgets, selectedBudget]);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
@@ -165,6 +177,8 @@ const BudgetsPage = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm('Delete this budget? All expenses linked to this budget will also be deleted.')) {
+      setShowLinkedExpenses(false);
+      setSelectedBudget(null);
       setBudgets((prev) => {
         const next = prev.filter((budget) => Number(budget.id) !== Number(id));
         setCachedData('budgets:list', next);
@@ -177,6 +191,10 @@ const BudgetsPage = () => {
   };
 
   const openLinkedExpenses = (budget) => {
+    const stillExists = budgets.some((item) => Number(item.id) === Number(budget.id));
+    if (!stillExists) {
+      return;
+    }
     setSelectedBudget(budget);
     setShowLinkedExpenses(true);
   };

@@ -79,6 +79,18 @@ const ExpensesPage = () => {
     };
   }, [error]);
 
+  useEffect(() => {
+    if (!selectedExpense) {
+      return;
+    }
+
+    const stillExists = expenses.some((expense) => Number(expense.id) === Number(selectedExpense.id));
+    if (!stillExists) {
+      setShowDetails(false);
+      setSelectedExpense(null);
+    }
+  }, [expenses, selectedExpense]);
+
   const categorySequenceByBudgetId = useMemo(() => {
     const grouped = new Map();
 
@@ -226,6 +238,8 @@ const ExpensesPage = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm('Delete this expense?')) {
+      setShowDetails(false);
+      setSelectedExpense(null);
       setExpenses((prev) => {
         const next = prev.filter((expense) => Number(expense.id) !== Number(id));
         setCachedData('expenses:list', next);
@@ -238,6 +252,10 @@ const ExpensesPage = () => {
   };
 
   const openExpenseDetails = (expense) => {
+    const stillExists = expenses.some((item) => Number(item.id) === Number(expense.id));
+    if (!stillExists) {
+      return;
+    }
     setSelectedExpense(expense);
     setShowDetails(true);
   };

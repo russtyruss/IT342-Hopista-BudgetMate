@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './shared/context/AuthContext';
 import { CurrencyProvider } from './shared/context/CurrencyContext';
@@ -18,7 +18,15 @@ import ProfilePage from './features/profile/pages/ProfilePage';
 
 import './App.css';
 
+const BACKEND_URL = 'https://budgetmate-backend-6dmw.onrender.com';
+
 function App() {
+  useEffect(() => {
+    fetch(BACKEND_URL, { cache: 'no-store' })
+      .then(() => console.log('Backend waking up...'))
+      .catch((error) => console.error('Ping failed', error));
+  }, []);
+
   return (
     <AuthProvider>
       <CurrencyProvider>

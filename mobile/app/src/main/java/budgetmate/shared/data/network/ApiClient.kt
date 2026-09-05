@@ -1,6 +1,6 @@
-package budgetmate.shared.data.network
+package edu.cit.hopista.budgetmate.shared.data.network
 
-import budgetmate.shared.data.session.SessionManager
+import edu.cit.hopista.budgetmate.shared.data.session.SessionManager
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

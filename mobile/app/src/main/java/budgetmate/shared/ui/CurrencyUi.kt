@@ -1,4 +1,4 @@
-package budgetmate.shared.ui
+package edu.cit.hopista.budgetmate.shared.ui
 
 import java.util.Locale
 

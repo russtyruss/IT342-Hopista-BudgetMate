@@ -59,6 +59,7 @@
                     android:text="Track smart, spend better"
                     android:textColor="@color/bm_text_secondary" />
 
+
                 <TextView
                     android:id="@+id/tvAuthMessage"
                     android:layout_width="match_parent"

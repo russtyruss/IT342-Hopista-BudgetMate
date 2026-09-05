@@ -1,4 +1,4 @@
-package budgetmate.features.profile.ui
+package edu.cit.hopista.budgetmate.features.profile.ui
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -19,9 +19,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import budgetmate.MainActivity
-import budgetmate.R
-import budgetmate.shared.viewmodel.AppViewModel
+import edu.cit.hopista.budgetmate.MainActivity
+import edu.cit.hopista.budgetmate.R
+import edu.cit.hopista.budgetmate.shared.viewmodel.AppViewModel
 import java.io.File
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
