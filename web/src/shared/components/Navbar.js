@@ -25,11 +25,28 @@ const Navbar = () => {
       </div>
       {user && (
         <div className="navbar-links">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/expenses">Expenses</Link>
-          <Link to="/budgets">Budgets</Link>
-          <Link to="/profile">Profile</Link>
-          {isAdmin && <Link to="/admin">Admin</Link>}
+          <Link to="/dashboard" className="nav-link">
+            <span className="nav-label-full">Dashboard</span>
+            <span className="nav-label-mobile">Home</span>
+          </Link>
+          <Link to="/expenses" className="nav-link">
+            <span className="nav-label-full">Expenses</span>
+            <span className="nav-label-mobile">Spend</span>
+          </Link>
+          <Link to="/budgets" className="nav-link">
+            <span className="nav-label-full">Budgets</span>
+            <span className="nav-label-mobile">Budget</span>
+          </Link>
+          <Link to="/profile" className="nav-link">
+            <span className="nav-label-full">Profile</span>
+            <span className="nav-label-mobile">Me</span>
+          </Link>
+          {isAdmin && (
+            <Link to="/admin" className="nav-link">
+              <span className="nav-label-full">Admin</span>
+              <span className="nav-label-mobile">Admin</span>
+            </Link>
+          )}
           <div className="currency-switcher">
             <label htmlFor="displayCurrency">Currency</label>
             <select

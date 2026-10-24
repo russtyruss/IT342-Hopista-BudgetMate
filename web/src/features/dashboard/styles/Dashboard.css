@@ -15,6 +15,7 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   margin-bottom: 32px;
+  min-width: 0;
 }
 
 .stat-card {
@@ -50,8 +51,9 @@
 
 .dashboard-sections {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 24px;
+  min-width: 0;
 }
 
 @media (max-width: 768px) {
@@ -59,8 +61,32 @@
 }
 
 @media (max-width: 600px) {
-  .dashboard { padding: 24px 14px; }
+  .dashboard {
+    padding: 24px 12px;
+    text-align: center;
+  }
+  .dashboard h1 {
+    line-height: 1.35;
+  }
+  .dashboard-cards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .stat-card {
+    align-items: center;
+    text-align: center;
+  }
   .stat-value { font-size: 22px; }
+  .section {
+    padding: 16px 10px;
+  }
+  .section h2 {
+    text-align: center;
+  }
+  .budget-bar-label {
+    text-align: left;
+    gap: 8px;
+  }
 }
 
 .section {
@@ -112,3 +138,16 @@
 
 .budget-bar-item { margin-bottom: 14px; }
 .budget-bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; color: #374151; }
+.budget-bar-label > * { min-width: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 600px) {
+  .budget-bar-label {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .budget-bar-label span:last-child {
+    text-align: left;
+  }
+}
