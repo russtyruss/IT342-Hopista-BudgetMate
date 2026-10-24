@@ -10,7 +10,9 @@ import { getCachedData, setCachedData } from '../../../shared/utils/pageDataCach
 import '../styles/Dashboard.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api/v1';
-const WS_HTTP_URL = `${API_BASE_URL.replace(/\/api\/v1\/?$/, '')}/ws`;
+const BACKEND_ORIGIN = process.env.REACT_APP_BACKEND_URL
+  || API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+const WS_HTTP_URL = `${BACKEND_ORIGIN.replace(/\/$/, '')}/ws`;
 
 const SUMMARY_PERIOD = {
   MONTH: 'MONTH',
