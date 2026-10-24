@@ -18,7 +18,9 @@ import ProfilePage from './features/profile/pages/ProfilePage';
 
 import './App.css';
 
-const BACKEND_URL = 'https://budgetmate-backend-6dmw.onrender.com';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL
+  || process.env.REACT_APP_API_URL?.replace(/\/api\/v1\/?$/, '')
+  || 'http://localhost:8080';
 
 function App() {
   useEffect(() => {
