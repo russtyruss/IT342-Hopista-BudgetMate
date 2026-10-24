@@ -98,6 +98,17 @@
 
 .section h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #374151; }
 
+.recent-expenses .data-table,
+.recent-expenses .data-table th,
+.recent-expenses .data-table td,
+.recent-expenses .data-table td::before {
+  text-align: left;
+}
+
+.recent-expenses .badge {
+  justify-self: start;
+}
+
 .period-modal {
   max-width: 360px;
 }

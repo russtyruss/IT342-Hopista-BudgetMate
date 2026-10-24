@@ -277,7 +277,7 @@ const DashboardPage = () => {
       </div>
 
       <div className="dashboard-sections">
-        <div className="section">
+        <div className="section recent-expenses">
           <h2>Recent Expenses</h2>
           {recentExpenses.length === 0 ? (
             <p className="empty">No expenses yet.</p>
