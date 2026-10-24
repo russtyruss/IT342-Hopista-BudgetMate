@@ -46,7 +46,7 @@
 }
 
 .stat-label { font-size: 12px; text-transform: uppercase; color: #9ca3af; letter-spacing: .5px; font-weight: 600; }
-.stat-value { font-size: 26px; font-weight: 700; color: #1a1a2e; }
+.stat-value { font-size: 26px; font-weight: 700; color: #1a1a2e; overflow-wrap: anywhere; }
 .stat-value.expense { color: #ef4444; }
 
 .dashboard-sections {

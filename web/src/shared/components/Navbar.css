@@ -83,8 +83,6 @@
 }
 .navbar-links a:hover { color: #4f46e5; }
 
-.nav-label-mobile { display: none; }
-
 .navbar-user {
   font-size: 13px;
   color: #374151;
@@ -108,35 +106,43 @@
 
 @media (max-width: 900px) {
   .navbar {
-    padding: 12px 16px;
-    gap: 12px;
+    padding: 8px 12px;
+    gap: 8px;
   }
 
   .navbar-links {
     flex: 1 1 auto;
-    gap: 10px 14px;
-    justify-content: flex-end;
+    gap: 6px;
+    justify-content: space-between;
   }
 
-  .nav-label-full { display: none; }
-  .nav-label-mobile { display: inline; }
+  .navbar-links a {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
 
   .navbar-user { display: none; }
 }
 
+@media (max-width: 720px) {
+  .brand-link span,
+  .currency-switcher label { display: none; }
+}
+
 @media (max-width: 600px) {
   .navbar {
-    height: 52px;
+    min-height: 52px;
+    height: auto;
     padding: 8px 6px;
     gap: 4px;
   }
 
   .brand-link {
     gap: 0;
-  }
-
-  .brand-link span {
-    display: none;
   }
 
   .brand-logo {
@@ -153,19 +159,16 @@
   .navbar-links a {
     flex: 1 1 auto;
     min-width: 0;
-    overflow: hidden;
     text-align: center;
-    font-size: 10px;
-    white-space: nowrap;
+    font-size: clamp(9px, 2.8vw, 12px);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 
   .currency-switcher {
     gap: 0;
     flex: 0 0 auto;
-  }
-
-  .currency-switcher label {
-    display: none;
   }
 
   .currency-switcher select {
@@ -181,7 +184,7 @@
   .btn-logout {
     flex: 0 0 auto;
     padding: 5px 4px;
-    font-size: 9px;
+    font-size: 10px;
     white-space: nowrap;
   }
 }
@@ -190,10 +193,6 @@
   .navbar {
     padding-inline: 4px;
     gap: 2px;
-  }
-
-  .navbar-links a {
-    font-size: 9px;
   }
 
   .brand-logo {

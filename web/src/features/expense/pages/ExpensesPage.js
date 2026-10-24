@@ -4,6 +4,7 @@ import { getExpenses, createExpense, updateExpense, deleteExpense } from '../api
 import { getBudgets } from '../../budget/api/budgetApi';
 import { useCurrency } from '../../../shared/context/CurrencyContext';
 import { getCachedData, setCachedData } from '../../../shared/utils/pageDataCache';
+import { formatDisplayDate } from '../../../shared/utils/formatDisplayDate';
 import '../../../shared/styles/Expenses.css';
 
 const EXPENSE_CATEGORIES = ['Food','Transport','Shopping','Entertainment','Health','Education','Utilities','Other'];
@@ -318,7 +319,7 @@ const ExpensesPage = () => {
                       {budgets.map((b) => (
                         <option key={b.id} value={b.id}>
                           {b.startDate && b.endDate
-                            ? `${formatBudgetDisplayName(b)} (${b.startDate} to ${b.endDate})`
+                            ? `${formatBudgetDisplayName(b)} (${formatDisplayDate(b.startDate)} to ${formatDisplayDate(b.endDate)})`
                             : `${formatBudgetDisplayName(b)} (Flexible)`}
                         </option>
                       ))}
@@ -388,23 +389,25 @@ const ExpensesPage = () => {
           <tbody>
             {expenses.map((e) => (
               <tr key={e.id} onClick={() => openExpenseDetails(e)} style={{ cursor: 'pointer' }}>
-                <td>{e.title || e.description}</td>
-                <td>
+                <td data-label="Description">{e.title || e.description}</td>
+                <td data-label="Category">
                   <span className="badge">
                     {e.budgetId
                       ? formatBudgetDisplayName(budgets.find((budget) => Number(budget.id) === Number(e.budgetId))) || e.category
                       : e.category}
                   </span>
                 </td>
-                <td>{formatCurrency(e.amount, e.currency || 'PHP')}</td>
-                <td>{e.expenseDate || e.date}</td>
-                <td>
-                  <button className="btn-icon" onClick={(event) => { event.stopPropagation(); handleEdit(e); }} aria-label="Edit expense" title="Edit">
-                    <FiEdit2 />
-                  </button>
-                  <button className="btn-icon danger" onClick={(event) => { event.stopPropagation(); handleDelete(e.id); }} aria-label="Delete expense" title="Delete">
-                    <FiTrash2 />
-                  </button>
+                <td data-label="Amount">{formatCurrency(e.amount, e.currency || 'PHP')}</td>
+                <td data-label="Date">{formatDisplayDate(e.expenseDate || e.date)}</td>
+                <td data-label="Actions">
+                  <span className="table-actions">
+                    <button className="btn-icon" onClick={(event) => { event.stopPropagation(); handleEdit(e); }} aria-label="Edit expense" title="Edit">
+                      <FiEdit2 />
+                    </button>
+                    <button className="btn-icon danger" onClick={(event) => { event.stopPropagation(); handleDelete(e.id); }} aria-label="Delete expense" title="Delete">
+                      <FiTrash2 />
+                    </button>
+                  </span>
                 </td>
               </tr>
             ))}
@@ -420,7 +423,7 @@ const ExpensesPage = () => {
               <div className="detail-row"><span className="detail-label">Title</span><span className="detail-value">{selectedExpense.title || '-'}</span></div>
               <div className="detail-row"><span className="detail-label">Amount</span><span className="detail-value">{formatCurrency(selectedExpense.amount || 0, selectedExpense.currency || 'PHP')}</span></div>
               <div className="detail-row"><span className="detail-label">Category</span><span className="detail-value">{selectedExpense.category || '-'}</span></div>
-              <div className="detail-row"><span className="detail-label">Expense Date</span><span className="detail-value">{selectedExpense.expenseDate || selectedExpense.date || '-'}</span></div>
+              <div className="detail-row"><span className="detail-label">Expense Date</span><span className="detail-value">{formatDisplayDate(selectedExpense.expenseDate || selectedExpense.date)}</span></div>
               {selectedExpense.budgetId && (
                 <div className="detail-row">
                   <span className="detail-label">Linked Budget</span>

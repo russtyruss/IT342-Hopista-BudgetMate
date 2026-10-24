@@ -7,6 +7,7 @@ import { useCurrency } from '../../../shared/context/CurrencyContext';
 import { getExpenses } from '../../expense/api/expenseApi';
 import { getBudgets } from '../../budget/api/budgetApi';
 import { getCachedData, setCachedData } from '../../../shared/utils/pageDataCache';
+import { formatDisplayDate } from '../../../shared/utils/formatDisplayDate';
 import '../styles/Dashboard.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api/v1';
@@ -288,10 +289,10 @@ const DashboardPage = () => {
               <tbody>
                 {recentExpenses.map((e) => (
                   <tr key={e.id}>
-                    <td>{e.title || e.description}</td>
-                    <td><span className="badge">{e.category}</span></td>
-                    <td>{formatCurrency(e.amount, e.currency || 'PHP')}</td>
-                    <td>{e.expenseDate || e.date}</td>
+                    <td data-label="Description">{e.title || e.description}</td>
+                    <td data-label="Category"><span className="badge">{e.category}</span></td>
+                    <td data-label="Amount">{formatCurrency(e.amount, e.currency || 'PHP')}</td>
+                    <td data-label="Date">{formatDisplayDate(e.expenseDate || e.date)}</td>
                   </tr>
                 ))}
               </tbody>

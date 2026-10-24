@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 import { getUsers, deleteUser } from '../../../shared/api/userApi';
 import { getCachedData, setCachedData } from '../../../shared/utils/pageDataCache';
+import { formatDisplayDate } from '../../../shared/utils/formatDisplayDate';
 import '../styles/AdminDashboard.css';
 
 const AdminDashboardPage = () => {
@@ -106,20 +107,20 @@ const AdminDashboardPage = () => {
           <tbody>
             {users.map((user) => (
               <tr key={user.id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>
+                <td data-label="Name">{user.name}</td>
+                <td data-label="Email / Username">{user.email}</td>
+                <td data-label="Role">
                   <span className={`role-badge ${(user.roles || []).includes('ADMIN') ? 'admin' : 'user'}`}>
                     {(user.roles || []).includes('ADMIN') ? 'Admin' : 'User'}
                   </span>
                 </td>
-                <td>
+                <td data-label="Status">
                   <span className={`status-badge ${user.status === 'ACTIVE' ? 'active' : 'inactive'}`}>
                     {user.status === 'ACTIVE' ? 'Active' : 'Inactive'}
                   </span>
                 </td>
-                <td>{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}</td>
-                <td>
+                <td data-label="Last Login">{user.lastLoginAt ? formatDisplayDate(user.lastLoginAt, { includeTime: true }) : 'Never'}</td>
+                <td data-label="Actions">
                   {(user.roles || []).includes('ADMIN') ? (
                     <span className="admin-locked">Protected</span>
                   ) : (

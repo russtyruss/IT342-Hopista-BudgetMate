@@ -88,10 +88,6 @@
 }
 
 @media (max-width: 600px) {
-  .admin-users-table {
-    table-layout: fixed;
-  }
-
   .admin-metric-card {
     padding: 10px 8px;
     flex-direction: column;
@@ -107,19 +103,9 @@
     font-size: 16px;
   }
 
-  .admin-users-table th,
-  .admin-users-table td {
-    padding: 9px 4px;
-    font-size: 10px;
-  }
-
-  .admin-users-table th {
-    font-size: 8px;
-  }
-
   .admin-users-table .role-badge,
   .admin-users-table .status-badge {
-    padding: 2px 4px;
-    font-size: 9px;
+    padding: 3px 8px;
+    font-size: 11px;
   }
 }

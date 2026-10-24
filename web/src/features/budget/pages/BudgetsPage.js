@@ -4,6 +4,7 @@ import { getBudgets, createBudget, updateBudget, deleteBudget } from '../api/bud
 import { getExpenses } from '../../expense/api/expenseApi';
 import { useCurrency } from '../../../shared/context/CurrencyContext';
 import { getCachedData, setCachedData } from '../../../shared/utils/pageDataCache';
+import { formatDisplayDate } from '../../../shared/utils/formatDisplayDate';
 import '../../../shared/styles/Expenses.css';
 
 const BUDGET_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Entertainment', 'Health', 'Education', 'Utilities', 'Other'];
@@ -363,8 +364,8 @@ const BudgetsPage = () => {
                   />
                 </div>
                 <div className="budget-dates">
-                  <span>Start: {b.startDate || '-'}</span>
-                  <span>End: {b.endDate || '-'}</span>
+                  <span>Start: {formatDisplayDate(b.startDate)}</span>
+                  <span>End: {formatDisplayDate(b.endDate)}</span>
                 </div>
               </div>
             );
@@ -390,7 +391,7 @@ const BudgetsPage = () => {
                   <div key={expense.id} className="linked-expense-item">
                     <div>
                       <strong>{expense.title || expense.description || 'Expense'}</strong>
-                      <p>{expense.expenseDate || expense.date || '-'}</p>
+                      <p>{formatDisplayDate(expense.expenseDate || expense.date)}</p>
                     </div>
                     <span>{formatCurrency(expense.amount || 0, expense.currency || 'PHP')}</span>
                   </div>
